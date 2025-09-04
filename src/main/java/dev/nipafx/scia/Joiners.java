@@ -5,10 +5,13 @@ import dev.nipafx.scia.task.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Optional;
 import java.util.concurrent.StructuredTaskScope;
 import java.util.concurrent.StructuredTaskScope.Joiner;
 import java.util.concurrent.StructuredTaskScope.Subtask;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static dev.nipafx.scia.task.Task.formatResults;
@@ -145,6 +148,65 @@ class Joiners {
 				} catch (StructuredTaskScope.FailedException ex) {
 					LOG.info(formatStates(taskA, taskB, taskC));
 				}
+			}
+		}
+
+	}
+
+
+	static class Until {
+
+		void main() throws InterruptedException {
+			var taskA = new Task("A");
+			var taskB = new Task("B");
+			var taskC = new Task("C");
+
+			var successCount = new AtomicInteger();
+			// homogeneous tasks / wait until predicate returns true
+			try (var scope = StructuredTaskScope.open(new UntilJoiner<String>(subtask
+					-> subtask.state() == Subtask.State.SUCCESS && successCount.incrementAndGet() >= 2))) {
+				scope.fork(() -> taskA.computeOrRollBack(Behavior.fail(100)));
+				scope.fork(() -> taskB.computeOrRollBack(Behavior.fail(200)));
+				scope.fork(() -> taskC.computeOrRollBack(Behavior.run(300)));
+
+				try {
+					var result = scope
+							.join()
+							.map(Subtask::get)
+							.orElse("NO RESULT");
+					LOG.info(result);
+				} catch (StructuredTaskScope.FailedException ex) {
+					LOG.info(formatStates(taskA, taskB, taskC));
+				}
+			}
+		}
+
+		static class UntilJoiner<T> implements Joiner<T, Optional<Subtask<T>>> {
+
+			private final Predicate<Subtask<? extends T>> isDone;
+			private final AtomicReference<Subtask<? extends T>> doneTask;
+
+			UntilJoiner(Predicate<Subtask<? extends T>> isDone) {
+				this.isDone = isDone;
+				this.doneTask = new AtomicReference<>();
+			}
+
+			@Override
+			public boolean onFork(Subtask<? extends T> subtask) {
+				return Joiner.super.onFork(subtask);
+			}
+
+			@Override
+			public boolean onComplete(Subtask<? extends T> subtask) {
+				var done = isDone.test(subtask);
+				if (done)
+					doneTask.set(subtask);
+				return done;
+			}
+
+			@Override
+			public Optional<Subtask<T>> result() throws Throwable {
+				return Optional.ofNullable((Subtask<T>) doneTask.get());
 			}
 		}
 
