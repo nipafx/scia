@@ -44,6 +44,41 @@ class Interruption {
 	}
 
 
+	static class ObserveNestedCancellation {
+
+		void main() throws InterruptedException {
+			var taskA = new Task("A (outer)");
+			var taskB = new Task("B (inner)");
+			var taskC = new Task("C (inner)");
+
+			try (var scope = StructuredTaskScope.open()) {
+				var subtask = scope.fork(() -> taskA.computeOrRollBack(Behavior.run(1_000)));
+				var subtasks = scope.fork(() -> inner(taskB, taskC));
+
+				try {
+					scope.join();
+					LOG.info(formatResults(subtask, subtasks));
+				} catch (FailedException ex) {
+					LOG.error("A task failed " + Thread.currentThread().isInterrupted());
+					LOG.error(formatStates(taskA, taskB, taskC));
+				}
+			}
+		}
+
+		String inner(Task task1, Task task2) throws InterruptedException {
+			try (var scope = StructuredTaskScope.open()) {
+				var subtaskB = scope.fork(() -> task1.computeOrRollBack(Behavior.run(1_000)));
+				var subtaskC = scope.fork(() -> task2.computeOrRollBack(Behavior.run(1_000)));
+
+				scope.join();
+
+				return formatResults(subtaskB, subtaskC);
+			}
+		}
+
+	}
+
+
 	static class ObserveNoCancellation {
 
 		void main() throws InterruptedException {
