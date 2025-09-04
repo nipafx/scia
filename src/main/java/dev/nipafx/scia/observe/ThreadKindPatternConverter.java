@@ -22,7 +22,7 @@ public final class ThreadKindPatternConverter extends LogEventPatternConverter {
     public void format(final LogEvent event, final StringBuilder toAppendTo) {
 		boolean onLoggingThread = event.getThreadId() == Thread.currentThread().threadId();
 		if (onLoggingThread)
-			toAppendTo.append(Thread.currentThread().isVirtual() ? "vt" : "pt");
+			toAppendTo.append(Thread.currentThread().isVirtual() ? "v" : "p");
 		else
 			toAppendTo.append("??");
     }

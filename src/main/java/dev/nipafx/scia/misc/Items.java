@@ -1,6 +1,5 @@
 package dev.nipafx.scia.misc;
 
-import dev.nipafx.scia.Backpressure;
 import dev.nipafx.scia.queue.InterruptableConsumer;
 import dev.nipafx.scia.queue.InterruptableSupplier;
 import org.slf4j.Logger;
@@ -11,7 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class Items {
 
-	private static final Logger LOG = LoggerFactory.getLogger(Backpressure.class);
+	private static final Logger LOG = LoggerFactory.getLogger(Items.class);
 
 	public static void produce(int delay, InterruptableConsumer<String> consumer) {
 		try {

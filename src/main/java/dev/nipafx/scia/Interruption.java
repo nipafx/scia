@@ -14,109 +14,125 @@ import java.util.concurrent.StructuredTaskScope.TimeoutException;
 import static dev.nipafx.scia.task.Task.formatResults;
 import static dev.nipafx.scia.task.Task.formatStates;
 
-public class Interruption {
+class Interruption {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Interruption.class);
 
-	void main() throws InterruptedException {
-		LOG.info(configure());
-	}
 
-	private String observeCancellation() throws InterruptedException {
-		var taskA = new Task("A");
-		var taskB = new Task("B");
-		var taskC = new Task("C");
+	static class ObserveCancellation {
 
-		try (var scope = StructuredTaskScope.open()) {
-			var subtaskA = scope.fork(() -> taskA.computeOrRollBack(Behavior.run(100)));
-			var subtaskB = scope.fork(() -> taskB.computeOrRollBack(Behavior.fail(200)));
-			var subtaskC = scope.fork(() -> taskC.computeOrRollBack(Behavior.run(1_000)));
+		void main() throws InterruptedException {
+			var taskA = new Task("A");
+			var taskB = new Task("B");
+			var taskC = new Task("C");
 
-			try {
-				scope.join();
-				return formatResults(subtaskA, subtaskB, subtaskC);
-			} catch (FailedException ex) {
-				LOG.info("A task failed");
-				return formatStates(taskA, taskB, taskC);
+			try (var scope = StructuredTaskScope.open()) {
+				var subtaskA = scope.fork(() -> taskA.computeOrRollBack(Behavior.run(100)));
+				var subtaskB = scope.fork(() -> taskB.computeOrRollBack(Behavior.fail(200)));
+				var subtaskC = scope.fork(() -> taskC.computeOrRollBack(Behavior.run(1_000)));
+
+				try {
+					scope.join();
+					LOG.info(formatResults(subtaskA, subtaskB, subtaskC));
+				} catch (FailedException ex) {
+					LOG.error("A task failed");
+					LOG.error(formatStates(taskA, taskB, taskC));
+				}
 			}
 		}
+
 	}
 
-	private String observeNoCancellation() throws InterruptedException {
-		var taskA = new Task("A");
-		var taskB = new Task("B");
-		var taskC = new Task("C");
 
-		try (var scope = StructuredTaskScope.open()) {
-			var subtaskA = scope.fork(() -> taskA.computeOrRollBack(Behavior.run(100)));
-			var subtaskB = scope.fork(() -> taskB.computeOrRollBack(Behavior.fail(200)));
-			var subtaskC = scope.fork(() -> taskC.computeOrRollBack(Behavior.runBusy(1_000)));
+	static class ObserveNoCancellation {
 
-			try {
-				scope.join();
-				return formatResults(subtaskA, subtaskB, subtaskC);
-			} catch (FailedException ex) {
-				LOG.info("A task failed");
-				return formatStates(taskA, taskB, taskC);
+		void main() throws InterruptedException {
+			var taskA = new Task("A");
+			var taskB = new Task("B");
+			var taskC = new Task("C");
+
+			try (var scope = StructuredTaskScope.open()) {
+				var subtaskA = scope.fork(() -> taskA.computeOrRollBack(Behavior.run(100)));
+				var subtaskB = scope.fork(() -> taskB.computeOrRollBack(Behavior.fail(200)));
+				var subtaskC = scope.fork(() -> taskC.computeOrRollBack(Behavior.runBusy(1_000)));
+
+				try {
+					scope.join();
+					LOG.info(formatResults(subtaskA, subtaskB, subtaskC));
+				} catch (FailedException ex) {
+					LOG.error("A task failed");
+					LOG.error(formatStates(taskA, taskB, taskC));
+				}
 			}
 		}
+
 	}
 
-	private String joinEarly() throws InterruptedException {
-		var taskA = new Task("A");
-		var taskB = new Task("B");
-		var taskC = new Task("C");
 
-		try (var scope = StructuredTaskScope.open(
-				StructuredTaskScope.Joiner.awaitAllSuccessfulOrThrow(),
-				config -> config.withTimeout(Duration.ofMillis(500))
-		)) {
-			var subtaskA = scope.fork(() -> taskA.computeOrRollBack(Behavior.run(100)));
-			var subtaskB = scope.fork(() -> taskB.computeOrRollBack(Behavior.run(800)));
-			var subtaskC = scope.fork(() -> taskC.computeOrRollBack(Behavior.runBusy(1_000)));
+	static class JoinEarly {
 
-			try {
-				scope.join();
-				return formatResults(subtaskA, subtaskB, subtaskC);
-			} catch (TimeoutException ex) {
-				LOG.info("The scope timed out");
-				return formatStates(taskA, taskB, taskC);
-			} catch (FailedException ex) {
-				LOG.info("A task failed");
-				return formatStates(taskA, taskB, taskC);
+		void main() throws InterruptedException {
+			var taskA = new Task("A");
+			var taskB = new Task("B");
+			var taskC = new Task("C");
+
+			try (var scope = StructuredTaskScope.open(
+					StructuredTaskScope.Joiner.awaitAllSuccessfulOrThrow(),
+					config -> config.withTimeout(Duration.ofMillis(500))
+			)) {
+				var subtaskA = scope.fork(() -> taskA.computeOrRollBack(Behavior.run(100)));
+				var subtaskB = scope.fork(() -> taskB.computeOrRollBack(Behavior.run(800)));
+				var subtaskC = scope.fork(() -> taskC.computeOrRollBack(Behavior.runBusy(1_000)));
+
+				try {
+					scope.join();
+					LOG.info(formatResults(subtaskA, subtaskB, subtaskC));
+				} catch (TimeoutException ex) {
+					LOG.error("The scope timed out");
+					LOG.error(formatStates(taskA, taskB, taskC));
+				} catch (FailedException ex) {
+					LOG.error("A task failed");
+					LOG.error(formatStates(taskA, taskB, taskC));
+				}
 			}
 		}
+
 	}
 
-	private String configure() throws InterruptedException {
-		var taskA = new Task("A");
-		var taskB = new Task("B");
-		var taskC = new Task("C");
 
-		try (var scope = StructuredTaskScope.open(
-				StructuredTaskScope.Joiner.awaitAllSuccessfulOrThrow(),
-				config -> config
-						.withTimeout(Duration.ofMillis(500))
-						.withName("important scope 🚀")
-						// .withThreadFactory()
-		)) {
-			var subtaskA = scope.fork(() -> taskA.computeOrRollBack(Behavior.run(100)));
-			var subtaskB = scope.fork(() -> taskB.computeOrRollBack(Behavior.run(400)));
-			var subtaskC = scope.fork(() -> taskC.computeOrRollBack(Behavior.runBusy(1_000)));
+	static class Configure {
 
-			ThreadDumper.createDumpAfter(0);
+		void main() throws InterruptedException {
+			var taskA = new Task("A");
+			var taskB = new Task("B");
+			var taskC = new Task("C");
 
-			try {
-				scope.join();
-				return formatResults(subtaskA, subtaskB, subtaskC);
-			} catch (TimeoutException ex) {
-				LOG.info("The scope timed out");
-				return formatStates(taskA, taskB, taskC);
-			} catch (FailedException ex) {
-				LOG.info("A task failed");
-				return formatStates(taskA, taskB, taskC);
+			try (var scope = StructuredTaskScope.open(
+					StructuredTaskScope.Joiner.awaitAllSuccessfulOrThrow(),
+					config -> config
+							.withTimeout(Duration.ofMillis(500))
+							.withName("important scope 🚀")
+					// .withThreadFactory()
+			)) {
+				var subtaskA = scope.fork(() -> taskA.computeOrRollBack(Behavior.run(100)));
+				var subtaskB = scope.fork(() -> taskB.computeOrRollBack(Behavior.run(400)));
+				var subtaskC = scope.fork(() -> taskC.computeOrRollBack(Behavior.runBusy(1_000)));
+
+				ThreadDumper.createDumpAfter(0);
+
+				try {
+					scope.join();
+					LOG.info(formatResults(subtaskA, subtaskB, subtaskC));
+				} catch (TimeoutException ex) {
+					LOG.error("The scope timed out");
+					LOG.error(formatStates(taskA, taskB, taskC));
+				} catch (FailedException ex) {
+					LOG.error("A task failed");
+					LOG.error(formatStates(taskA, taskB, taskC));
+				}
 			}
 		}
+
 	}
 
 }

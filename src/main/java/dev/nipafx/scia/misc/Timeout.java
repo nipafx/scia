@@ -12,8 +12,8 @@ public class Timeout {
 
 	/**
 	 * @throws InterruptedException if the current thread was interrupted while waiting for the result
-	 * @throws TimeoutException     if no result was produced during {@code duration}
-	 * @throws FailedException      if the callable threw an exception
+	 * @throws TimeoutException if no result was produced during {@code duration}
+	 * @throws FailedException if the callable threw an exception
 	 */
 	public static <T> T callable(Callable<T> callable, Duration duration)
 			throws InterruptedException, TimeoutException, FailedException {
@@ -28,8 +28,8 @@ public class Timeout {
 
 	/**
 	 * @throws InterruptedException if the current thread was interrupted while waiting for the result
-	 * @throws TimeoutException     if no result was produced during {@code duration}
-	 * @throws FailedException      if the callable threw an exception
+	 * @throws TimeoutException if no result was produced during {@code duration}
+	 * @throws FailedException if the callable threw an exception
 	 */
 	public static void runnable(InterruptableRunnable runnable, Duration duration)
 			throws InterruptedException, TimeoutException, FailedException {

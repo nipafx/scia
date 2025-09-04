@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Locale;
 import java.util.concurrent.StructuredTaskScope.Subtask;
 import java.util.stream.Stream;
 
@@ -131,8 +132,17 @@ public class Task {
 	public static String formatStates(Task... tasks) {
 		return Stream
 				.of(tasks)
-				.map(Object::toString)
-				.collect(joining("\n\t", "STATE:\n\t", ""));
+				.map(task -> "%s Thread %s (%s)".formatted(
+						switch (task.state) {
+							case CREATED -> "✨";
+							case LAUNCHED -> "🚀";
+							case ROLLED_BACK -> "↩️";
+							case CANCELED -> "🚧";
+							case FAILED -> "❌️";
+							case COMPLETED -> "✅";
+						},
+						task.name, task.state.toString().toLowerCase()))
+				.collect(joining("\n\t", "State:\n\t", ""));
 	}
 
 	public static String formatResults(Subtask<?>... tasks) {
@@ -141,9 +151,9 @@ public class Task {
 				.map(subtask -> switch (subtask.state()) {
 					case UNAVAILABLE -> throw new IllegalStateException("Subtask result unavailable");
 					case SUCCESS -> "✅ " + subtask.get();
-					case FAILED -> "⛔️ " + subtask.exception().getMessage();
+					case FAILED -> "❌️ " + subtask.exception().getMessage();
 				})
-				.collect(joining("\n\t", "RESULT:\n\t", ""));
+				.collect(joining("\n\t", "Result:\n\t", ""));
 	}
 
 }
