@@ -39,6 +39,7 @@ class Interruption {
 					LOG.error(formatStates(taskA, taskB, taskC));
 				}
 			}
+			LOG.info("Done");
 		}
 
 	}
@@ -63,6 +64,7 @@ class Interruption {
 					LOG.error(formatStates(taskA, taskB, taskC));
 				}
 			}
+			LOG.info("Done");
 		}
 
 		String inner(Task task1, Task task2) throws InterruptedException {
@@ -99,6 +101,7 @@ class Interruption {
 					LOG.error(formatStates(taskA, taskB, taskC));
 				}
 			}
+			LOG.info("Done");
 		}
 
 	}
@@ -130,6 +133,7 @@ class Interruption {
 					LOG.error(formatStates(taskA, taskB, taskC));
 				}
 			}
+			LOG.info("Done");
 		}
 
 	}
@@ -166,6 +170,7 @@ class Interruption {
 					LOG.error(formatStates(taskA, taskB, taskC));
 				}
 			}
+			LOG.info("Done");
 		}
 
 	}

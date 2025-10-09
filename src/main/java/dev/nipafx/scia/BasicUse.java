@@ -59,6 +59,7 @@ class BasicUse {
 
 				LOG.info(formatStates(taskA, taskB, taskC));
 			}
+			LOG.info("Done");
 		}
 
 	}
@@ -80,6 +81,7 @@ class BasicUse {
 
 				LOG.info(formatResults(subtaskA, subtaskB, subtaskC));
 			}
+			LOG.info("Done");
 		}
 
 	}
@@ -102,6 +104,7 @@ class BasicUse {
 
 				LOG.info(formatResults(subtaskA, subtaskB, subtaskC));
 			}
+			LOG.info("Done");
 		}
 
 	}
@@ -125,6 +128,7 @@ class BasicUse {
 			} catch (FailedException ex) {
 				LOG.error(formatStates(taskA, taskB, taskC));
 			}
+			LOG.info("Done");
 		}
 
 	}
@@ -155,6 +159,7 @@ class BasicUse {
 					LOG.error(formatStates(taskA, taskB, taskC));
 				}
 			}
+			LOG.info("Done");
 		}
 
 	}
@@ -179,6 +184,7 @@ class BasicUse {
 					LOG.error(formatStates(taskA, taskB, taskC));
 				}
 			}
+			LOG.info("Done");
 		}
 
 	}

@@ -42,6 +42,7 @@ class Joiners {
 					LOG.info(formatStates(taskA, taskB, taskC));
 				}
 			}
+			LOG.info("Done");
 		}
 
 	}
@@ -70,6 +71,7 @@ class Joiners {
 					LOG.info(formatStates(taskA, taskB, taskC));
 				}
 			}
+			LOG.info("Done");
 		}
 
 	}
@@ -94,6 +96,7 @@ class Joiners {
 					LOG.info(formatStates(taskA, taskB, taskC));
 				}
 			}
+			LOG.info("Done");
 		}
 
 	}
@@ -119,6 +122,7 @@ class Joiners {
 					LOG.info(formatStates(taskA, taskB, taskC));
 				}
 			}
+			LOG.info("Done");
 		}
 
 	}
@@ -149,6 +153,7 @@ class Joiners {
 					LOG.info(formatStates(taskA, taskB, taskC));
 				}
 			}
+			LOG.info("Done");
 		}
 
 	}
@@ -179,6 +184,7 @@ class Joiners {
 					LOG.info(formatStates(taskA, taskB, taskC));
 				}
 			}
+			LOG.info("Done");
 		}
 
 		static class UntilJoiner<T> implements Joiner<T, Optional<Subtask<T>>> {

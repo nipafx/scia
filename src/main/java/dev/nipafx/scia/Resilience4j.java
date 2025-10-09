@@ -52,6 +52,7 @@ class Resilience4j {
 					LOG.error(formatStates(taskA, taskB, taskC, taskD, taskE));
 				}
 			}
+			LOG.info("Done");
 		}
 
 		private static final CircuitBreaker CIRCUIT_BREAKER = CircuitBreaker.of(
@@ -95,6 +96,7 @@ class Resilience4j {
 					LOG.error(formatStates(taskA, taskB, taskC));
 				}
 			}
+			LOG.info("Done");
 		}
 
 		private static final RateLimiter RATE_LIMITER = RateLimiter.of(
@@ -137,6 +139,7 @@ class Resilience4j {
 					LOG.error(formatStates(taskA, taskB, taskC));
 				}
 			}
+			LOG.info("Done");
 		}
 
 		private static final Retry RETRIER = Retry.of(
