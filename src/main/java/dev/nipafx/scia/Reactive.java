@@ -78,7 +78,7 @@ class Reactive {
 								});
 					} catch (Exception ex) {
 						// thrown if all retries failed
-						LOG.info("! Write of batch {} abandoned", window);
+						LOG.error("! Write of batch {} abandoned", window);
 					}
 					window.clear();
 				}
@@ -91,7 +91,7 @@ class Reactive {
 				Thread.sleep(RandomGenerator.getDefault().nextInt(200));
 				LOG.info("↓ Writing successful");
 			} catch (InterruptedException ex) {
-				LOG.info("! Writing aborted");
+				LOG.error("! Writing aborted");
 				throw ex;
 			}
 		}
@@ -173,7 +173,7 @@ class Reactive {
 					throw ex;
 				} catch (Exception e) {
 					// thrown if all retries failed
-					LOG.info("! Network call abandoned");
+					LOG.error("! Network call abandoned");
 				}
 			}
 		}
@@ -188,7 +188,7 @@ class Reactive {
 				LOG.info("↗ Network call successful: {}", item);
 				return item;
 			} catch (InterruptedException ex) {
-				LOG.info("! Network call aborted");
+				LOG.error("! Network call aborted");
 				throw ex;
 			}
 		}

@@ -39,7 +39,7 @@ class Joiners {
 					scope.join();
 					LOG.info(formatResults(subtaskA, subtaskB, subtaskC));
 				} catch (StructuredTaskScope.FailedException ex) {
-					LOG.info(formatStates(taskA, taskB, taskC));
+					LOG.error(formatStates(taskA, taskB, taskC));
 				}
 			}
 			LOG.info("Done");
@@ -68,7 +68,7 @@ class Joiners {
 							.collect(Collectors.joining(" | ", "JOINER RESULT: ", ""));
 					LOG.info(result);
 				} catch (StructuredTaskScope.FailedException ex) {
-					LOG.info(formatStates(taskA, taskB, taskC));
+					LOG.error(formatStates(taskA, taskB, taskC));
 				}
 			}
 			LOG.info("Done");
@@ -93,7 +93,7 @@ class Joiners {
 				try {
 					LOG.info("JOINER RESULT: {}", scope.join());
 				} catch (StructuredTaskScope.FailedException ex) {
-					LOG.info(formatStates(taskA, taskB, taskC));
+					LOG.error(formatStates(taskA, taskB, taskC));
 				}
 			}
 			LOG.info("Done");
@@ -119,7 +119,7 @@ class Joiners {
 					scope.join();
 					LOG.info(formatResults(subtaskA, subtaskB, subtaskC));
 				} catch (StructuredTaskScope.FailedException ex) {
-					LOG.info(formatStates(taskA, taskB, taskC));
+					LOG.error(formatStates(taskA, taskB, taskC));
 				}
 			}
 			LOG.info("Done");
@@ -150,7 +150,7 @@ class Joiners {
 							.collect(Collectors.joining(" | ", "JOINER RESULT: ", ""));
 					LOG.info(result);
 				} catch (StructuredTaskScope.FailedException ex) {
-					LOG.info(formatStates(taskA, taskB, taskC));
+					LOG.error(formatStates(taskA, taskB, taskC));
 				}
 			}
 			LOG.info("Done");
@@ -181,7 +181,7 @@ class Joiners {
 							.orElse("NO RESULT");
 					LOG.info(result);
 				} catch (StructuredTaskScope.FailedException ex) {
-					LOG.info(formatStates(taskA, taskB, taskC));
+					LOG.error(formatStates(taskA, taskB, taskC));
 				}
 			}
 			LOG.info("Done");
