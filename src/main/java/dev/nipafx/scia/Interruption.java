@@ -70,7 +70,7 @@ class Interruption {
 		String inner(Task task1, Task task2) throws InterruptedException {
 			try (var scope = StructuredTaskScope.open()) {
 				var subtaskB = scope.fork(() -> task1.compute(Behavior.run(1_000)));
-				var subtaskC = scope.fork(() -> task2.compute(Behavior.run(1_000)));
+				var subtaskC = scope.fork(() -> task2.compute(Behavior.fail(100)));
 
 				scope.join();
 

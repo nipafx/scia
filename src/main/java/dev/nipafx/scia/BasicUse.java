@@ -99,7 +99,7 @@ class BasicUse {
 				var subtaskB = scope.fork(() -> taskB.compute(Behavior.run(2000)));
 				var subtaskC = scope.fork(() -> taskC.compute(Behavior.run(3000)));
 
-				ThreadDumper.createDumpAfter(1000);
+				ThreadDumper.createDumpAfter(500);
 				scope.join();
 
 				LOG.info(formatResults(subtaskA, subtaskB, subtaskC));

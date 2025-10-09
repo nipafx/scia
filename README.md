@@ -38,7 +38,7 @@ The intended order for the slides and the code in this repo:
 	* observe: state changes can still be observed if necessary
 * thread dump: `threadDump()`
 	* increase run times and create thread dump
-	* observe `"virtual": true` and `"owner": "..."`
+	* observe `"virtual": true`, `"owner": "..."`, and `"tid": "..."`
 * start error handling: `observeErrors`
 	* catch `FaledException` from `join()`
 	* observe: in the default approach, there's no access to subtasks in the catch block
