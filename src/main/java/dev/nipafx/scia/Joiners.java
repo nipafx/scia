@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static dev.nipafx.scia.task.Task.formatResults;
 import static dev.nipafx.scia.task.Task.formatStates;
@@ -30,7 +31,9 @@ class Joiners {
 			var taskC = new Task("C");
 
 			// heterogeneous tasks / wait for all to be successful (default behavior)
-			try (var scope = StructuredTaskScope.open(Joiner.awaitAllSuccessfulOrThrow())) {
+			try (StructuredTaskScope<Object, Void> scope = StructuredTaskScope
+					.open(Joiner.awaitAllSuccessfulOrThrow())) {
+
 				var subtaskA = scope.fork(() -> taskA.computeOrRollBack(Behavior.run(100)));
 				var subtaskB = scope.fork(() -> taskB.computeOrRollBack(Behavior.fail(200)));
 				var subtaskC = scope.fork(() -> taskC.computeOrRollBack(Behavior.run(300)));
@@ -56,7 +59,9 @@ class Joiners {
 			var taskC = new Task("C");
 
 			// homogeneous tasks / wait for all to be successful
-			try (var scope = StructuredTaskScope.open(Joiner.<String>allSuccessfulOrThrow())) {
+			try (StructuredTaskScope<String, Stream<Subtask<String>>> scope = StructuredTaskScope
+					.open(Joiner.allSuccessfulOrThrow())) {
+
 				scope.fork(() -> taskA.computeOrRollBack(Behavior.run(100)));
 				scope.fork(() -> taskB.computeOrRollBack(Behavior.run(200)));
 				scope.fork(() -> taskC.computeOrRollBack(Behavior.run(300)));
@@ -85,7 +90,9 @@ class Joiners {
 			var taskC = new Task("C");
 
 			// homogeneous tasks / wait for first to be successful
-			try (var scope = StructuredTaskScope.open(Joiner.<String>anySuccessfulResultOrThrow())) {
+			try (StructuredTaskScope<String, String> scope = StructuredTaskScope
+					.open(Joiner.anySuccessfulResultOrThrow())) {
+
 				scope.fork(() -> taskA.computeOrRollBack(Behavior.fail(100)));
 				scope.fork(() -> taskB.computeOrRollBack(Behavior.fail(200)));
 				scope.fork(() -> taskC.computeOrRollBack(Behavior.run(300)));
@@ -110,7 +117,8 @@ class Joiners {
 			var taskC = new Task("C");
 
 			// heterogeneous tasks / wait for all to complete, regardless of outcome
-			try (var scope = StructuredTaskScope.open(Joiner.awaitAll())) {
+			try (StructuredTaskScope<Object, Void> scope = StructuredTaskScope.open(Joiner.awaitAll())) {
+
 				var subtaskA = scope.fork(() -> taskA.computeOrRollBack(Behavior.run(100)));
 				var subtaskB = scope.fork(() -> taskB.computeOrRollBack(Behavior.fail(200)));
 				var subtaskC = scope.fork(() -> taskC.computeOrRollBack(Behavior.run(300)));
@@ -137,8 +145,10 @@ class Joiners {
 
 			var failedCount = new AtomicInteger();
 			// homogeneous tasks / wait until predicate returns true
-			try (var scope = StructuredTaskScope.open(Joiner.<String>allUntil(subtask
-					-> subtask.state() == Subtask.State.FAILED && failedCount.incrementAndGet() >= 2))) {
+			try (StructuredTaskScope<String, Stream<Subtask<String>>> scope = StructuredTaskScope
+					.open(Joiner.allUntil(subtask
+							-> subtask.state() == Subtask.State.FAILED && failedCount.incrementAndGet() >= 2))) {
+
 				scope.fork(() -> taskA.computeOrRollBack(Behavior.fail(100)));
 				scope.fork(() -> taskB.computeOrRollBack(Behavior.run(200)));
 				scope.fork(() -> taskC.computeOrRollBack(Behavior.run(300)));
@@ -168,8 +178,9 @@ class Joiners {
 
 			var successCount = new AtomicInteger();
 			// homogeneous tasks / wait until predicate returns true
-			try (var scope = StructuredTaskScope.open(new UntilJoiner<String>(subtask
-					-> subtask.state() == Subtask.State.SUCCESS && successCount.incrementAndGet() >= 2))) {
+			try (StructuredTaskScope<String, Optional<Subtask<String>>> scope = StructuredTaskScope
+					.open(new UntilJoiner<>(subtask
+							-> subtask.state() == Subtask.State.SUCCESS && successCount.incrementAndGet() >= 2))) {
 				scope.fork(() -> taskA.computeOrRollBack(Behavior.fail(100)));
 				scope.fork(() -> taskB.computeOrRollBack(Behavior.fail(200)));
 				scope.fork(() -> taskC.computeOrRollBack(Behavior.run(300)));
@@ -214,6 +225,7 @@ class Joiners {
 			public Optional<Subtask<T>> result() throws Throwable {
 				return Optional.ofNullable((Subtask<T>) doneTask.get());
 			}
+
 		}
 
 	}

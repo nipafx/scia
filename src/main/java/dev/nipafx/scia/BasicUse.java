@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.StructuredTaskScope;
 import java.util.concurrent.StructuredTaskScope.FailedException;
+import java.util.concurrent.StructuredTaskScope.Subtask;
 
 import static dev.nipafx.scia.task.Task.formatResults;
 import static dev.nipafx.scia.task.Task.formatStates;
@@ -73,13 +74,13 @@ class BasicUse {
 			var taskC = new Task("C");
 
 			try (var scope = StructuredTaskScope.open()) {
-				var subtaskA = scope.fork(() -> taskA.compute(Behavior.run(100)));
-				var subtaskB = scope.fork(() -> taskB.compute(Behavior.run(200)));
-				var subtaskC = scope.fork(() -> taskC.compute(Behavior.run(300)));
+				Subtask<String> subtaskA = scope.fork(() -> taskA.compute(Behavior.run(100)));
+				Subtask<String> subtaskB = scope.fork(() -> taskB.compute(Behavior.run(200)));
+				Subtask<String> subtaskC = scope.fork(() -> taskC.compute(Behavior.run(300)));
 
 				scope.join();
 
-				LOG.info(formatResults(subtaskA, subtaskB, subtaskC));
+				LOG.info("RESULT:\n\t{}\n\t{}\n\t{}", subtaskA.get(), subtaskB.get(), subtaskC.get());
 			}
 			LOG.info("Done");
 		}
