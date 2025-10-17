@@ -31,13 +31,11 @@ class Interruption {
 				var subtaskB = scope.fork(() -> taskB.compute(Behavior.fail(200)));
 				var subtaskC = scope.fork(() -> taskC.compute(Behavior.run(1_000)));
 
-				try {
-					scope.join();
-					LOG.info(formatResults(subtaskA, subtaskB, subtaskC));
-				} catch (FailedException ex) {
-					LOG.error("A task failed");
-					LOG.error(formatStates(taskA, taskB, taskC));
-				}
+				scope.join();
+
+				LOG.info(formatResults(subtaskA, subtaskB, subtaskC));
+			} catch (FailedException ex) {
+				LOG.error(formatStates(taskA, taskB, taskC));
 			}
 			LOG.info("Done");
 		}
@@ -56,13 +54,11 @@ class Interruption {
 				var subtask = scope.fork(() -> taskA.compute(Behavior.run(1_000)));
 				var subtasks = scope.fork(() -> inner(taskB, taskC));
 
-				try {
-					scope.join();
-					LOG.info(formatResults(subtask, subtasks));
-				} catch (FailedException ex) {
-					LOG.error("A task failed " + Thread.currentThread().isInterrupted());
-					LOG.error(formatStates(taskA, taskB, taskC));
-				}
+				scope.join();
+
+				LOG.info(formatResults(subtask, subtasks));
+			} catch (FailedException ex) {
+				LOG.error(formatStates(taskA, taskB, taskC));
 			}
 			LOG.info("Done");
 		}
@@ -93,13 +89,11 @@ class Interruption {
 				var subtaskB = scope.fork(() -> taskB.compute(Behavior.fail(200)));
 				var subtaskC = scope.fork(() -> taskC.compute(Behavior.runBusy(1_000)));
 
-				try {
-					scope.join();
-					LOG.info(formatResults(subtaskA, subtaskB, subtaskC));
-				} catch (FailedException ex) {
-					LOG.error("A task failed");
-					LOG.error(formatStates(taskA, taskB, taskC));
-				}
+				scope.join();
+
+				LOG.info(formatResults(subtaskA, subtaskB, subtaskC));
+			} catch (FailedException ex) {
+				LOG.error(formatStates(taskA, taskB, taskC));
 			}
 			LOG.info("Done");
 		}
@@ -122,16 +116,15 @@ class Interruption {
 				var subtaskB = scope.fork(() -> taskB.compute(Behavior.run(800)));
 				var subtaskC = scope.fork(() -> taskC.compute(Behavior.runBusy(1_000)));
 
-				try {
-					scope.join();
-					LOG.info(formatResults(subtaskA, subtaskB, subtaskC));
-				} catch (TimeoutException ex) {
-					LOG.error("The scope timed out");
-					LOG.error(formatStates(taskA, taskB, taskC));
-				} catch (FailedException ex) {
-					LOG.error("A task failed");
-					LOG.error(formatStates(taskA, taskB, taskC));
-				}
+				scope.join();
+
+				LOG.info(formatResults(subtaskA, subtaskB, subtaskC));
+			} catch (TimeoutException ex) {
+				LOG.error("The scope timed out");
+				LOG.error(formatStates(taskA, taskB, taskC));
+			} catch (FailedException ex) {
+				LOG.error("A task failed");
+				LOG.error(formatStates(taskA, taskB, taskC));
 			}
 			LOG.info("Done");
 		}
@@ -159,16 +152,15 @@ class Interruption {
 
 				ThreadDumper.createDumpAfter(0);
 
-				try {
-					scope.join();
-					LOG.info(formatResults(subtaskA, subtaskB, subtaskC));
-				} catch (TimeoutException ex) {
-					LOG.error("The scope timed out");
-					LOG.error(formatStates(taskA, taskB, taskC));
-				} catch (FailedException ex) {
-					LOG.error("A task failed");
-					LOG.error(formatStates(taskA, taskB, taskC));
-				}
+				scope.join();
+
+				LOG.info(formatResults(subtaskA, subtaskB, subtaskC));
+			} catch (TimeoutException ex) {
+				LOG.error("The scope timed out");
+				LOG.error(formatStates(taskA, taskB, taskC));
+			} catch (FailedException ex) {
+				LOG.error("A task failed");
+				LOG.error(formatStates(taskA, taskB, taskC));
 			}
 			LOG.info("Done");
 		}

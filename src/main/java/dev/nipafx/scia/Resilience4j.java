@@ -45,12 +45,11 @@ class Resilience4j {
 				var subtaskD = forkToBreaker(scope, () -> taskD.computeOrRollBack(Behavior.run(100)));
 				var subtaskE = forkToBreaker(scope, () -> taskE.computeOrRollBack(Behavior.run(100)));
 
-				try {
-					scope.join();
-					LOG.info(formatResults(subtaskA, subtaskB, subtaskC, subtaskD, subtaskE));
-				} catch (FailedException ex) {
-					LOG.error(formatStates(taskA, taskB, taskC, taskD, taskE));
-				}
+				scope.join();
+
+				LOG.info(formatResults(subtaskA, subtaskB, subtaskC, subtaskD, subtaskE));
+			} catch (FailedException ex) {
+				LOG.error(formatStates(taskA, taskB, taskC, taskD, taskE));
 			}
 			LOG.info("Done");
 		}
@@ -89,12 +88,11 @@ class Resilience4j {
 				var subtaskB = forkToLimiter(scope, () -> taskB.computeOrRollBack(Behavior.fail(600)));
 				var subtaskC = forkToLimiter(scope, () -> taskC.computeOrRollBack(Behavior.run(300)));
 
-				try {
-					scope.join();
-					LOG.info(formatResults(subtaskA, subtaskB, subtaskC));
-				} catch (FailedException ex) {
-					LOG.error(formatStates(taskA, taskB, taskC));
-				}
+				scope.join();
+
+				LOG.info(formatResults(subtaskA, subtaskB, subtaskC));
+			} catch (FailedException ex) {
+				LOG.error(formatStates(taskA, taskB, taskC));
 			}
 			LOG.info("Done");
 		}
@@ -132,12 +130,11 @@ class Resilience4j {
 				var subtaskB = forkToRetrier(scope, () -> taskB.computeOrRollBack(Behavior.fail(200)));
 				var subtaskC = forkToRetrier(scope, () -> taskC.computeOrRollBack(Behavior.run(300)));
 
-				try {
-					scope.join();
-					LOG.info(formatResults(subtaskA, subtaskB, subtaskC));
-				} catch (FailedException ex) {
-					LOG.error(formatStates(taskA, taskB, taskC));
-				}
+				scope.join();
+
+				LOG.info(formatResults(subtaskA, subtaskB, subtaskC));
+			} catch (FailedException ex) {
+				LOG.error(formatStates(taskA, taskB, taskC));
 			}
 			LOG.info("Done");
 		}

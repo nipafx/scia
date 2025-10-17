@@ -178,12 +178,11 @@ class BasicUse {
 				var subtaskB = scope.fork(() -> taskB.computeOrRollBack(Behavior.fail(200)));
 				var subtaskC = scope.fork(() -> taskC.computeOrRollBack(Behavior.run(300)));
 
-				try {
-					scope.join();
-					LOG.info(formatResults(subtaskA, subtaskB, subtaskC));
-				} catch (FailedException ex) {
-					LOG.error(formatStates(taskA, taskB, taskC));
-				}
+				scope.join();
+
+				LOG.info(formatResults(subtaskA, subtaskB, subtaskC));
+			} catch (FailedException ex) {
+				LOG.error(formatStates(taskA, taskB, taskC));
 			}
 			LOG.info("Done");
 		}

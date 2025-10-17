@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 import java.util.concurrent.StructuredTaskScope;
+import java.util.concurrent.StructuredTaskScope.FailedException;
 import java.util.concurrent.StructuredTaskScope.Joiner;
 import java.util.concurrent.StructuredTaskScope.Subtask;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -38,12 +39,11 @@ class Joiners {
 				var subtaskB = scope.fork(() -> taskB.computeOrRollBack(Behavior.fail(200)));
 				var subtaskC = scope.fork(() -> taskC.computeOrRollBack(Behavior.run(300)));
 
-				try {
-					scope.join();
-					LOG.info(formatResults(subtaskA, subtaskB, subtaskC));
-				} catch (StructuredTaskScope.FailedException ex) {
-					LOG.error(formatStates(taskA, taskB, taskC));
-				}
+				scope.join();
+
+				LOG.info(formatResults(subtaskA, subtaskB, subtaskC));
+			} catch (FailedException ex) {
+				LOG.error(formatStates(taskA, taskB, taskC));
 			}
 			LOG.info("Done");
 		}
@@ -66,15 +66,13 @@ class Joiners {
 				scope.fork(() -> taskB.computeOrRollBack(Behavior.run(200)));
 				scope.fork(() -> taskC.computeOrRollBack(Behavior.run(300)));
 
-				try {
-					var result = scope
-							.join()
-							.map(Subtask::get)
-							.collect(Collectors.joining(" | ", "JOINER RESULT: ", ""));
-					LOG.info(result);
-				} catch (StructuredTaskScope.FailedException ex) {
-					LOG.error(formatStates(taskA, taskB, taskC));
-				}
+				var result = scope
+						.join()
+						.map(Subtask::get)
+						.collect(Collectors.joining(" | ", "JOINER RESULT: ", ""));
+				LOG.info(result);
+			} catch (FailedException ex) {
+				LOG.error(formatStates(taskA, taskB, taskC));
 			}
 			LOG.info("Done");
 		}
@@ -97,11 +95,9 @@ class Joiners {
 				scope.fork(() -> taskB.computeOrRollBack(Behavior.fail(200)));
 				scope.fork(() -> taskC.computeOrRollBack(Behavior.run(300)));
 
-				try {
-					LOG.info("JOINER RESULT: {}", scope.join());
-				} catch (StructuredTaskScope.FailedException ex) {
-					LOG.error(formatStates(taskA, taskB, taskC));
-				}
+				LOG.info("JOINER RESULT: {}", scope.join());
+			} catch (FailedException ex) {
+				LOG.error(formatStates(taskA, taskB, taskC));
 			}
 			LOG.info("Done");
 		}
@@ -123,12 +119,11 @@ class Joiners {
 				var subtaskB = scope.fork(() -> taskB.computeOrRollBack(Behavior.fail(200)));
 				var subtaskC = scope.fork(() -> taskC.computeOrRollBack(Behavior.run(300)));
 
-				try {
-					scope.join();
-					LOG.info(formatResults(subtaskA, subtaskB, subtaskC));
-				} catch (StructuredTaskScope.FailedException ex) {
-					LOG.error(formatStates(taskA, taskB, taskC));
-				}
+				scope.join();
+
+				LOG.info(formatResults(subtaskA, subtaskB, subtaskC));
+			} catch (FailedException ex) {
+				LOG.error(formatStates(taskA, taskB, taskC));
 			}
 			LOG.info("Done");
 		}
@@ -153,15 +148,13 @@ class Joiners {
 				scope.fork(() -> taskB.computeOrRollBack(Behavior.run(200)));
 				scope.fork(() -> taskC.computeOrRollBack(Behavior.run(300)));
 
-				try {
-					var result = scope
-							.join()
-							.map(subtask -> subtask.state().toString())
-							.collect(Collectors.joining(" | ", "JOINER RESULT: ", ""));
-					LOG.info(result);
-				} catch (StructuredTaskScope.FailedException ex) {
-					LOG.error(formatStates(taskA, taskB, taskC));
-				}
+				var result = scope
+						.join()
+						.map(subtask -> subtask.state().toString())
+						.collect(Collectors.joining(" | ", "JOINER RESULT: ", ""));
+				LOG.info(result);
+			} catch (FailedException ex) {
+				LOG.error(formatStates(taskA, taskB, taskC));
 			}
 			LOG.info("Done");
 		}
@@ -182,18 +175,16 @@ class Joiners {
 					.open(new UntilJoiner<>(subtask
 							-> subtask.state() == Subtask.State.SUCCESS && successCount.incrementAndGet() >= 2))) {
 				scope.fork(() -> taskA.computeOrRollBack(Behavior.fail(100)));
-				scope.fork(() -> taskB.computeOrRollBack(Behavior.fail(200)));
+				scope.fork(() -> taskB.computeOrRollBack(Behavior.run(200)));
 				scope.fork(() -> taskC.computeOrRollBack(Behavior.run(300)));
 
-				try {
-					var result = scope
-							.join()
-							.map(Subtask::get)
-							.orElse("NO RESULT");
-					LOG.info(result);
-				} catch (StructuredTaskScope.FailedException ex) {
-					LOG.error(formatStates(taskA, taskB, taskC));
-				}
+				var result = scope
+						.join()
+						.map(Subtask::get)
+						.orElse("NO RESULT");
+				LOG.info(result);
+			} catch (FailedException ex) {
+				LOG.error(formatStates(taskA, taskB, taskC));
 			}
 			LOG.info("Done");
 		}
