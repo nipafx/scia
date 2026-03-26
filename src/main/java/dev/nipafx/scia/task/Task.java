@@ -131,7 +131,7 @@ public class Task {
 	public static String formatStates(Task... tasks) {
 		return Stream
 				.of(tasks)
-				.map(task -> "%s Thread %s (%s)".formatted(
+				.map(task -> "%s Task %s (%s)".formatted(
 						switch (task.state) {
 							case CREATED -> "✨";
 							case LAUNCHED -> "🚀";
