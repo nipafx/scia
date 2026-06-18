@@ -6,6 +6,7 @@ import dev.nipafx.scia.queue.MostRecentMessagesQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.StructuredTaskScope;
 
 class Backpressure {
@@ -15,7 +16,7 @@ class Backpressure {
 
 	static class OneToOne {
 
-		void main() throws InterruptedException {
+		void main() throws InterruptedException, ExecutionException {
 			var queue = new LeastRecentMessageQueue<String>();
 
 			try (var scope = StructuredTaskScope.open()) {
@@ -31,7 +32,7 @@ class Backpressure {
 
 	static class OneToMany {
 
-		void main() throws InterruptedException {
+		void main() throws InterruptedException, ExecutionException {
 			var queue = new MostRecentMessagesQueue<String>(3);
 
 			try (var scope = StructuredTaskScope.open()) {

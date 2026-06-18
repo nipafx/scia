@@ -13,8 +13,8 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.StructuredTaskScope;
-import java.util.concurrent.StructuredTaskScope.FailedException;
 import java.util.concurrent.StructuredTaskScope.Subtask;
 
 import static dev.nipafx.scia.misc.Errors.asException;
@@ -48,7 +48,7 @@ class Resilience4j {
 				scope.join();
 
 				LOG.info(formatResults(subtaskA, subtaskB, subtaskC, subtaskD, subtaskE));
-			} catch (FailedException ex) {
+			} catch (ExecutionException ex) {
 				LOG.error(formatStates(taskA, taskB, taskC, taskD, taskE));
 			}
 			LOG.info("Done");
@@ -62,7 +62,7 @@ class Resilience4j {
 						.ignoreExceptions(InterruptedException.class)
 						.build());
 
-		private static <T> Subtask<T> forkToBreaker(StructuredTaskScope<T, ?> scope, Callable<T> task) {
+		private static <T> Subtask<T> forkToBreaker(StructuredTaskScope<T, ?, ?> scope, Callable<T> task) {
 			Callable<T> breakerTask = () -> {
 				try {
 					return CIRCUIT_BREAKER.executeCheckedSupplier(task::call);
@@ -91,7 +91,7 @@ class Resilience4j {
 				scope.join();
 
 				LOG.info(formatResults(subtaskA, subtaskB, subtaskC));
-			} catch (FailedException ex) {
+			} catch (ExecutionException ex) {
 				LOG.error(formatStates(taskA, taskB, taskC));
 			}
 			LOG.info("Done");
@@ -104,7 +104,7 @@ class Resilience4j {
 						.limitForPeriod(1)
 						.build());
 
-		private static <T> Subtask<T> forkToLimiter(StructuredTaskScope<T, ?> scope, Callable<T> task) {
+		private static <T> Subtask<T> forkToLimiter(StructuredTaskScope<T, ?, ?> scope, Callable<T> task) {
 			Callable<T> limiterTask = () -> {
 				try {
 					return RATE_LIMITER.executeCheckedSupplier(task::call);
@@ -133,7 +133,7 @@ class Resilience4j {
 				scope.join();
 
 				LOG.info(formatResults(subtaskA, subtaskB, subtaskC));
-			} catch (FailedException ex) {
+			} catch (ExecutionException ex) {
 				LOG.error(formatStates(taskA, taskB, taskC));
 			}
 			LOG.info("Done");
@@ -146,7 +146,7 @@ class Resilience4j {
 						.waitDuration(Duration.ofMillis(500))
 						.build());
 
-		private static <T> Subtask<T> forkToRetrier(StructuredTaskScope<T, ?> scope, Callable<T> task) {
+		private static <T> Subtask<T> forkToRetrier(StructuredTaskScope<T, ?, ?> scope, Callable<T> task) {
 			Callable<T> retrierTask = () -> {
 				try {
 					return RETRIER.executeCheckedSupplier(task::call);

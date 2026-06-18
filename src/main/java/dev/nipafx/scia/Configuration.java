@@ -9,6 +9,7 @@ import org.slf4j.MDC;
 
 import java.time.Duration;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.StructuredTaskScope;
 import java.util.concurrent.StructuredTaskScope.Joiner;
 import java.util.concurrent.StructuredTaskScope.Subtask;
@@ -30,7 +31,6 @@ public class Configuration {
 			var taskC = new Task("C");
 
 			try (var scope = StructuredTaskScope.open(
-					Joiner.awaitAllSuccessfulOrThrow(),
 					config -> config.withName("important scope 🚀")
 			)) {
 				var subtaskA = scope.fork(() -> taskA.compute(Behavior.run(1000)));
@@ -42,7 +42,7 @@ public class Configuration {
 				scope.join();
 
 				LOG.info(formatResults(subtaskA, subtaskB, subtaskC));
-			} catch (StructuredTaskScope.FailedException ex) {
+			} catch (ExecutionException ex) {
 				LOG.error("A task failed");
 				LOG.error(formatStates(taskA, taskB, taskC));
 			}
@@ -60,7 +60,6 @@ public class Configuration {
 			var taskC = new Task("C");
 
 			try (var scope = StructuredTaskScope.open(
-					Joiner.awaitAllSuccessfulOrThrow(),
 					config -> config.withTimeout(Duration.ofMillis(500))
 			)) {
 				var subtaskA = scope.fork(() -> taskA.compute(Behavior.run(100)));
@@ -70,11 +69,11 @@ public class Configuration {
 				scope.join();
 
 				LOG.info(formatResults(subtaskA, subtaskB, subtaskC));
-			} catch (StructuredTaskScope.TimeoutException ex) {
-				LOG.error("The scope timed out");
-				LOG.error(formatStates(taskA, taskB, taskC));
-			} catch (StructuredTaskScope.FailedException ex) {
-				LOG.error("A task failed");
+			} catch (ExecutionException ex) {
+				if (ex.getCause() instanceof StructuredTaskScope.CancelledByTimeoutException)
+					LOG.error("The scope timed out");
+				else
+					LOG.error("A task failed");
 				LOG.error(formatStates(taskA, taskB, taskC));
 			}
 			LOG.info("Done");
@@ -96,7 +95,7 @@ public class Configuration {
 				scope.fork(() -> logMdcs("KEY"));
 				scope.join();
 				LOG.info("Joined");
-			} catch (StructuredTaskScope.FailedException ex) {
+			} catch (ExecutionException ex) {
 				LOG.error("A task failed");
 			}
 			LOG.info("Done");
@@ -125,7 +124,7 @@ public class Configuration {
 
 				scope.join();
 				LOG.info("Joined");
-			} catch (StructuredTaskScope.FailedException ex) {
+			} catch (ExecutionException ex) {
 				LOG.error("A task failed");
 			}
 			LOG.info("Done");
@@ -145,13 +144,12 @@ public class Configuration {
 			logMdcs("KEY");
 
 			try (var scope = StructuredTaskScope.open(
-					Joiner.awaitAllSuccessfulOrThrow(),
 					config -> config.withThreadFactory(new MdcThreadFactory())
 			)) {
 				scope.fork(() -> logMdcs("KEY"));
 				scope.join();
 				LOG.info("Joined");
-			} catch (StructuredTaskScope.FailedException ex) {
+			} catch (ExecutionException ex) {
 				LOG.error("A task failed");
 			}
 			LOG.info("Done");
@@ -189,29 +187,28 @@ public class Configuration {
 				scope.join();
 
 				LOG.info("Joined");
-			} catch (StructuredTaskScope.FailedException ex) {
+			} catch (ExecutionException ex) {
 				LOG.error("A task failed");
 			}
 			LOG.info("Done");
 		}
 
-		private static class MyStructuredTaskScope<T, R> implements AutoCloseable {
+		private static class MyStructuredTaskScope<T, R, R_X extends Throwable> implements AutoCloseable {
 
-			private final StructuredTaskScope<T, R> scope;
+			private final StructuredTaskScope<T, R, R_X> scope;
 
-			private MyStructuredTaskScope(StructuredTaskScope<T, R> scope) {
+			private MyStructuredTaskScope(StructuredTaskScope<T, R, R_X> scope) {
 				this.scope = scope;
 			}
 
-			public static <T> MyStructuredTaskScope<T, Void> open(String name) {
+			public static <T> MyStructuredTaskScope<T, Void, ExecutionException> open(String name) {
 				return new MyStructuredTaskScope<>(
 						StructuredTaskScope.open(
-								Joiner.awaitAllSuccessfulOrThrow(),
 								config -> config.withName(name).withThreadFactory(new MdcThreadFactory())
 						));
 			}
 
-			public static <T, R> MyStructuredTaskScope<T, R> open(String name, Joiner<? super T, ? extends R> joiner) {
+			public static <T, R, R_X extends Throwable> MyStructuredTaskScope<T, R, R_X> open(String name, Joiner<? super T, ? extends R, R_X> joiner) {
 				return new MyStructuredTaskScope<>(
 						StructuredTaskScope.open(
 								joiner,
@@ -227,7 +224,7 @@ public class Configuration {
 				return scope.fork(task);
 			}
 
-			public R join() throws InterruptedException {
+			public R join() throws InterruptedException, R_X {
 				return scope.join();
 			}
 

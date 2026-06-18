@@ -1,15 +1,12 @@
 package dev.nipafx.scia;
 
-import dev.nipafx.scia.observe.ThreadDumper;
 import dev.nipafx.scia.task.Behavior;
 import dev.nipafx.scia.task.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Duration;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.StructuredTaskScope;
-import java.util.concurrent.StructuredTaskScope.FailedException;
-import java.util.concurrent.StructuredTaskScope.TimeoutException;
 
 import static dev.nipafx.scia.task.Task.formatResults;
 import static dev.nipafx.scia.task.Task.formatStates;
@@ -34,7 +31,7 @@ class Interruption {
 				scope.join();
 
 				LOG.info(formatResults(subtaskA, subtaskB, subtaskC));
-			} catch (FailedException ex) {
+			} catch (ExecutionException ex) {
 				LOG.error(formatStates(taskA, taskB, taskC));
 			}
 			LOG.info("Done");
@@ -57,13 +54,13 @@ class Interruption {
 				scope.join();
 
 				LOG.info(formatResults(subtask, subtasks));
-			} catch (FailedException ex) {
+			} catch (ExecutionException ex) {
 				LOG.error(formatStates(taskA, taskB, taskC));
 			}
 			LOG.info("Done");
 		}
 
-		String inner(Task task1, Task task2) throws InterruptedException {
+		String inner(Task task1, Task task2) throws InterruptedException, ExecutionException {
 			try (var scope = StructuredTaskScope.open()) {
 				var subtaskB = scope.fork(() -> task1.compute(Behavior.run(1_000)));
 				var subtaskC = scope.fork(() -> task2.compute(Behavior.fail(100)));
@@ -92,7 +89,7 @@ class Interruption {
 				scope.join();
 
 				LOG.info(formatResults(subtaskA, subtaskB, subtaskC));
-			} catch (FailedException ex) {
+			} catch (ExecutionException ex) {
 				LOG.error(formatStates(taskA, taskB, taskC));
 			}
 			LOG.info("Done");

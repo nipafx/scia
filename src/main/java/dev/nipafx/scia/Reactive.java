@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.StructuredTaskScope;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.random.RandomGenerator;
@@ -52,7 +53,7 @@ class Reactive {
 		/// SUMMARY:
 		/// * buffer up to 10_000 items from a (presumably fast) event source
 		/// * in batches of 500 valid elements: write them to the database (with timeout and retries)
-		void main() throws InterruptedException {
+		void main() throws InterruptedException, ExecutionException {
 			var events = new DroppingMessageQueue<String>(20);
 			try (var scope = StructuredTaskScope.open()) {
 				scope.fork(() -> Items.produce(10, events));
@@ -129,7 +130,7 @@ class Reactive {
 		/// * immediately receive either the cached data or the most recent that was retrieved from the network
 		///   (if that was successful at least once)
 		/// * receive updated data when available
-		void main() throws InterruptedException {
+		void main() throws InterruptedException, ExecutionException {
 			var data = new MultiplexingQueue<>("Initial Item");
 
 			try (var scope = StructuredTaskScope.open()) {

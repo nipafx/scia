@@ -5,16 +5,16 @@ import dev.nipafx.scia.task.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.StructuredTaskScope;
-import java.util.concurrent.StructuredTaskScope.FailedException;
 import java.util.concurrent.StructuredTaskScope.Joiner;
 import java.util.concurrent.StructuredTaskScope.Subtask;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static dev.nipafx.scia.task.Task.formatResults;
 import static dev.nipafx.scia.task.Task.formatStates;
@@ -32,7 +32,7 @@ class Joiners {
 			var taskC = new Task("C");
 
 			// heterogeneous tasks / wait for all to be successful (default behavior)
-			try (StructuredTaskScope<Object, Void> scope = StructuredTaskScope
+			try (StructuredTaskScope<Object, Void, ExecutionException> scope = StructuredTaskScope
 					.open(Joiner.awaitAllSuccessfulOrThrow())) {
 
 				var subtaskA = scope.fork(() -> taskA.computeOrRollBack(Behavior.run(100)));
@@ -42,7 +42,7 @@ class Joiners {
 				scope.join();
 
 				LOG.info(formatResults(subtaskA, subtaskB, subtaskC));
-			} catch (FailedException ex) {
+			} catch (ExecutionException ex) {
 				LOG.error(formatStates(taskA, taskB, taskC));
 			}
 			LOG.info("Done");
@@ -59,7 +59,7 @@ class Joiners {
 			var taskC = new Task("C");
 
 			// homogeneous tasks / wait for all to be successful
-			try (StructuredTaskScope<String, Stream<Subtask<String>>> scope = StructuredTaskScope
+			try (StructuredTaskScope<String, List<String>, ExecutionException> scope = StructuredTaskScope
 					.open(Joiner.allSuccessfulOrThrow())) {
 
 				scope.fork(() -> taskA.computeOrRollBack(Behavior.run(100)));
@@ -68,10 +68,10 @@ class Joiners {
 
 				var result = scope
 						.join()
-						.map(Subtask::get)
+						.stream()
 						.collect(Collectors.joining(" | ", "JOINER RESULT: ", ""));
 				LOG.info(result);
-			} catch (FailedException ex) {
+			} catch (ExecutionException ex) {
 				LOG.error(formatStates(taskA, taskB, taskC));
 			}
 			LOG.info("Done");
@@ -88,41 +88,15 @@ class Joiners {
 			var taskC = new Task("C");
 
 			// homogeneous tasks / wait for first to be successful
-			try (StructuredTaskScope<String, String> scope = StructuredTaskScope
-					.open(Joiner.anySuccessfulResultOrThrow())) {
+			try (StructuredTaskScope<String, String, ExecutionException> scope = StructuredTaskScope
+					.open(Joiner.anySuccessfulOrThrow())) {
 
 				scope.fork(() -> taskA.computeOrRollBack(Behavior.fail(100)));
 				scope.fork(() -> taskB.computeOrRollBack(Behavior.fail(200)));
 				scope.fork(() -> taskC.computeOrRollBack(Behavior.run(300)));
 
 				LOG.info("JOINER RESULT: {}", scope.join());
-			} catch (FailedException ex) {
-				LOG.error(formatStates(taskA, taskB, taskC));
-			}
-			LOG.info("Done");
-		}
-
-	}
-
-
-	static class AwaitAll {
-
-		void main() throws InterruptedException {
-			var taskA = new Task("A");
-			var taskB = new Task("B");
-			var taskC = new Task("C");
-
-			// heterogeneous tasks / wait for all to complete, regardless of outcome
-			try (StructuredTaskScope<Object, Void> scope = StructuredTaskScope.open(Joiner.awaitAll())) {
-
-				var subtaskA = scope.fork(() -> taskA.computeOrRollBack(Behavior.run(100)));
-				var subtaskB = scope.fork(() -> taskB.computeOrRollBack(Behavior.fail(200)));
-				var subtaskC = scope.fork(() -> taskC.computeOrRollBack(Behavior.run(300)));
-
-				scope.join();
-
-				LOG.info(formatResults(subtaskA, subtaskB, subtaskC));
-			} catch (FailedException ex) {
+			} catch (ExecutionException ex) {
 				LOG.error(formatStates(taskA, taskB, taskC));
 			}
 			LOG.info("Done");
@@ -140,20 +114,20 @@ class Joiners {
 
 			var failedCount = new AtomicInteger();
 			// homogeneous tasks / wait until predicate returns true
-			try (StructuredTaskScope<String, Stream<Subtask<String>>> scope = StructuredTaskScope
-					.open(Joiner.allUntil(subtask
-							-> subtask.state() == Subtask.State.FAILED && failedCount.incrementAndGet() >= 2))) {
+			try (var scope = StructuredTaskScope
+					.open(Joiner.allUntil(subtask -> false))) {
 
-				scope.fork(() -> taskA.computeOrRollBack(Behavior.fail(100)));
-				scope.fork(() -> taskB.computeOrRollBack(Behavior.run(200)));
+				scope.fork(() -> taskA.computeOrRollBack(Behavior.run(100)));
+				scope.fork(() -> taskB.computeOrRollBack(Behavior.fail(200)));
 				scope.fork(() -> taskC.computeOrRollBack(Behavior.run(300)));
 
 				var result = scope
 						.join()
+						.stream()
 						.map(subtask -> subtask.state().toString())
 						.collect(Collectors.joining(" | ", "JOINER RESULT: ", ""));
 				LOG.info(result);
-			} catch (FailedException ex) {
+			} catch (Exception ex) {
 				LOG.error(formatStates(taskA, taskB, taskC));
 			}
 			LOG.info("Done");
@@ -171,7 +145,7 @@ class Joiners {
 
 			var successCount = new AtomicInteger();
 			// homogeneous tasks / wait until predicate returns true
-			try (StructuredTaskScope<String, Optional<Subtask<String>>> scope = StructuredTaskScope
+			try (StructuredTaskScope<String, Optional<Subtask<String>>, RuntimeException> scope = StructuredTaskScope
 					.open(new UntilJoiner<>(subtask
 							-> subtask.state() == Subtask.State.SUCCESS && successCount.incrementAndGet() >= 2))) {
 				scope.fork(() -> taskA.computeOrRollBack(Behavior.fail(100)));
@@ -183,16 +157,16 @@ class Joiners {
 						.map(Subtask::get)
 						.orElse("NO RESULT");
 				LOG.info(result);
-			} catch (FailedException ex) {
+			} catch (Exception ex) {
 				LOG.error(formatStates(taskA, taskB, taskC));
 			}
 			LOG.info("Done");
 		}
 
-		static class UntilJoiner<T> implements Joiner<T, Optional<Subtask<T>>> {
+		static class UntilJoiner<T> implements Joiner<T, Optional<Subtask<T>>, RuntimeException> {
 
 			private final Predicate<Subtask<? extends T>> isDone;
-			private final AtomicReference<Subtask<? extends T>> doneTask;
+			private final AtomicReference<Subtask<T>> doneTask;
 
 			UntilJoiner(Predicate<Subtask<? extends T>> isDone) {
 				this.isDone = isDone;
@@ -200,12 +174,12 @@ class Joiners {
 			}
 
 			@Override
-			public boolean onFork(Subtask<? extends T> subtask) {
+			public boolean onFork(Subtask<T> subtask) {
 				return Joiner.super.onFork(subtask);
 			}
 
 			@Override
-			public boolean onComplete(Subtask<? extends T> subtask) {
+			public boolean onComplete(Subtask<T> subtask) {
 				var done = isDone.test(subtask);
 				if (done)
 					doneTask.set(subtask);
@@ -213,10 +187,14 @@ class Joiners {
 			}
 
 			@Override
-			public Optional<Subtask<T>> result() throws Throwable {
+			public Optional<Subtask<T>> result() {
 				return Optional.ofNullable((Subtask<T>) doneTask.get());
 			}
 
+			@Override
+			public Optional<Subtask<T>> timeout() {
+				return Optional.ofNullable(doneTask.get());
+			}
 		}
 
 	}

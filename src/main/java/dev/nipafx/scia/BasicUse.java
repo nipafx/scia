@@ -6,8 +6,8 @@ import dev.nipafx.scia.task.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.StructuredTaskScope;
-import java.util.concurrent.StructuredTaskScope.FailedException;
 import java.util.concurrent.StructuredTaskScope.Subtask;
 
 import static dev.nipafx.scia.task.Task.formatResults;
@@ -22,7 +22,7 @@ class BasicUse {
 
 	static class FirstStep {
 
-		void main() throws InterruptedException {
+		void main() throws InterruptedException, ExecutionException {
 			try (var scope = StructuredTaskScope.open()) {
 				scope.fork(() -> IO.println("A"));
 				scope.fork(() -> IO.println("B"));
@@ -37,7 +37,7 @@ class BasicUse {
 
 	static class RunAll {
 
-		void main() throws InterruptedException {
+		void main() throws InterruptedException, ExecutionException {
 			var taskA = new Task("A");
 			var taskB = new Task("B");
 			var taskC = new Task("C");
@@ -68,7 +68,7 @@ class BasicUse {
 
 	static class ComputeAll {
 
-		void main() throws InterruptedException {
+		void main() throws InterruptedException, ExecutionException {
 			var taskA = new Task("A");
 			var taskB = new Task("B");
 			var taskC = new Task("C");
@@ -90,7 +90,7 @@ class BasicUse {
 
 	static class ThreadDump {
 
-		void main() throws InterruptedException {
+		void main() throws InterruptedException, ExecutionException {
 			var taskA = new Task("A");
 			var taskB = new Task("B");
 			var taskC = new Task("C");
@@ -126,7 +126,7 @@ class BasicUse {
 				scope.join();
 
 				LOG.info(formatResults(subtaskA, subtaskB, subtaskC));
-			} catch (FailedException ex) {
+			} catch (ExecutionException ex) {
 				LOG.error(formatStates(taskA, taskB, taskC));
 			}
 			LOG.info("Done");
@@ -150,7 +150,7 @@ class BasicUse {
 				try {
 					scope.join();
 					LOG.info(formatResults(subtaskA, subtaskB, subtaskC));
-				} catch (FailedException ex) {
+				} catch (ExecutionException ex) {
 					if (subtaskA.state() == FAILED || subtaskA.state() == UNAVAILABLE)
 						taskA.rollBack();
 					if (subtaskB.state() == FAILED || subtaskB.state() == UNAVAILABLE)
@@ -181,7 +181,7 @@ class BasicUse {
 				scope.join();
 
 				LOG.info(formatResults(subtaskA, subtaskB, subtaskC));
-			} catch (FailedException ex) {
+			} catch (ExecutionException ex) {
 				LOG.error(formatStates(taskA, taskB, taskC));
 			}
 			LOG.info("Done");
