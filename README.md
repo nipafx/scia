@@ -13,6 +13,7 @@ The intended order for the slides and the code in this repo:
 * slides: "API Overview"
 * code: `BasicUse`
 * code: `Joiners`
+* code: `Configuration`
 * slides: "Interruption"
 * code: `Interruption`
 * code: `Timeout`
