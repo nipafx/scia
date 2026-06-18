@@ -33,9 +33,9 @@ public class Configuration {
 			try (var scope = StructuredTaskScope.open(
 					config -> config.withName("important scope 🚀")
 			)) {
-				var subtaskA = scope.fork(() -> taskA.compute(Behavior.run(1000)));
-				var subtaskB = scope.fork(() -> taskB.compute(Behavior.run(2000)));
-				var subtaskC = scope.fork(() -> taskC.compute(Behavior.run(3000)));
+				var subtaskA = scope.fork(() -> taskA.computeOrRollBack(Behavior.run(1000)));
+				var subtaskB = scope.fork(() -> taskB.computeOrRollBack(Behavior.run(2000)));
+				var subtaskC = scope.fork(() -> taskC.computeOrRollBack(Behavior.run(3000)));
 
 				ThreadDumper.createDumpAfter(500);
 
@@ -62,9 +62,9 @@ public class Configuration {
 			try (var scope = StructuredTaskScope.open(
 					config -> config.withTimeout(Duration.ofMillis(500))
 			)) {
-				var subtaskA = scope.fork(() -> taskA.compute(Behavior.run(100)));
-				var subtaskB = scope.fork(() -> taskB.compute(Behavior.run(800)));
-				var subtaskC = scope.fork(() -> taskC.compute(Behavior.runBusy(1_000)));
+				var subtaskA = scope.fork(() -> taskA.computeOrRollBack(Behavior.run(100)));
+				var subtaskB = scope.fork(() -> taskB.computeOrRollBack(Behavior.run(800)));
+				var subtaskC = scope.fork(() -> taskC.computeOrRollBack(Behavior.run(1_000)));
 
 				scope.join();
 

@@ -5,19 +5,17 @@ import dev.nipafx.scia.task.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.StructuredTaskScope;
 import java.util.concurrent.StructuredTaskScope.Joiner;
 import java.util.concurrent.StructuredTaskScope.Subtask;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 import static dev.nipafx.scia.task.Task.formatResults;
 import static dev.nipafx.scia.task.Task.formatStates;
+import static java.util.stream.Collectors.joining;
 
 class Joiners {
 
@@ -51,6 +49,33 @@ class Joiners {
 	}
 
 
+	static class AwaitAllSuccessfulOrThrowIOException {
+
+		void main() throws InterruptedException {
+			var taskA = new Task("A");
+			var taskB = new Task("B");
+			var taskC = new Task("C");
+
+			// heterogeneous tasks / wait for all to be successful / throw as IOExcpetion
+			try (StructuredTaskScope<Object, Void, IOException> scope = StructuredTaskScope
+					.open(Joiner.awaitAllSuccessfulOrThrow(IOException::new))) {
+
+				var subtaskA = scope.fork(() -> taskA.computeOrRollBack(Behavior.run(100)));
+				var subtaskB = scope.fork(() -> taskB.computeOrRollBack(Behavior.fail(200)));
+				var subtaskC = scope.fork(() -> taskC.computeOrRollBack(Behavior.run(300)));
+
+				scope.join();
+
+				LOG.info(formatResults(subtaskA, subtaskB, subtaskC));
+			} catch (IOException ex) {
+				LOG.error(formatStates(taskA, taskB, taskC), ex);
+			}
+			LOG.info("Done");
+		}
+
+	}
+
+
 	static class AllSuccessfulOrThrow {
 
 		void main() throws InterruptedException {
@@ -69,7 +94,7 @@ class Joiners {
 				var result = scope
 						.join()
 						.stream()
-						.collect(Collectors.joining(" | ", "JOINER RESULT: ", ""));
+						.collect(joining(" | ", "JOINER RESULT: ", ""));
 				LOG.info(result);
 			} catch (ExecutionException ex) {
 				LOG.error(formatStates(taskA, taskB, taskC));
@@ -112,7 +137,6 @@ class Joiners {
 			var taskB = new Task("B");
 			var taskC = new Task("C");
 
-			var failedCount = new AtomicInteger();
 			// homogeneous tasks / wait until predicate returns true
 			try (var scope = StructuredTaskScope
 					.open(Joiner.allUntil(subtask -> false))) {
@@ -125,7 +149,7 @@ class Joiners {
 						.join()
 						.stream()
 						.map(subtask -> subtask.state().toString())
-						.collect(Collectors.joining(" | ", "JOINER RESULT: ", ""));
+						.collect(joining(" | ", "JOINER RESULT: ", ""));
 				LOG.info(result);
 			} catch (Exception ex) {
 				LOG.error(formatStates(taskA, taskB, taskC));
@@ -136,41 +160,39 @@ class Joiners {
 	}
 
 
-	static class Until {
+	static class CustomJoiner {
 
 		void main() throws InterruptedException {
 			var taskA = new Task("A");
 			var taskB = new Task("B");
 			var taskC = new Task("C");
 
-			var successCount = new AtomicInteger();
-			// homogeneous tasks / wait until predicate returns true
-			try (StructuredTaskScope<String, Optional<Subtask<String>>, RuntimeException> scope = StructuredTaskScope
-					.open(new UntilJoiner<>(subtask
-							-> subtask.state() == Subtask.State.SUCCESS && successCount.incrementAndGet() >= 2))) {
-				scope.fork(() -> taskA.computeOrRollBack(Behavior.fail(100)));
-				scope.fork(() -> taskB.computeOrRollBack(Behavior.run(200)));
+			// homogeneous tasks / wait until n tasks succeed
+			try (StructuredTaskScope<String, List<String>, TooFewSuccessesException> scope = StructuredTaskScope
+					.open(new NSuccessfulOrThrowJoiner<>(2))) {
+				scope.fork(() -> taskA.computeOrRollBack(Behavior.run(100)));
+				scope.fork(() -> taskB.computeOrRollBack(Behavior.fail(200)));
 				scope.fork(() -> taskC.computeOrRollBack(Behavior.run(300)));
 
 				var result = scope
 						.join()
-						.map(Subtask::get)
-						.orElse("NO RESULT");
+						.stream()
+						.collect(joining(" | ", "JOINER RESULT: ", ""));
 				LOG.info(result);
-			} catch (Exception ex) {
+			} catch (TooFewSuccessesException ex) {
 				LOG.error(formatStates(taskA, taskB, taskC));
 			}
 			LOG.info("Done");
 		}
 
-		static class UntilJoiner<T> implements Joiner<T, Optional<Subtask<T>>, RuntimeException> {
+		static class NSuccessfulOrThrowJoiner<T> implements Joiner<T, List<T>, TooFewSuccessesException> {
 
-			private final Predicate<Subtask<? extends T>> isDone;
-			private final AtomicReference<Subtask<T>> doneTask;
+			private final int n;
+			private final List<T> results;
 
-			UntilJoiner(Predicate<Subtask<? extends T>> isDone) {
-				this.isDone = isDone;
-				this.doneTask = new AtomicReference<>();
+			NSuccessfulOrThrowJoiner(int n) {
+				this.n = n;
+				this.results = new ArrayList<>();
 			}
 
 			@Override
@@ -180,23 +202,41 @@ class Joiners {
 
 			@Override
 			public boolean onComplete(Subtask<T> subtask) {
-				var done = isDone.test(subtask);
-				if (done)
-					doneTask.set(subtask);
-				return done;
+				if (subtask.state() == Subtask.State.SUCCESS)
+					synchronized (results) {
+						results.add(subtask.get());
+						return results.size() == n;
+					}
+				return false;
 			}
 
 			@Override
-			public Optional<Subtask<T>> result() {
-				return Optional.ofNullable((Subtask<T>) doneTask.get());
+			public List<T> result() throws TooFewSuccessesException {
+				if (results.size() >= n)
+					return List.copyOf(results.subList(0, n));
+				else
+					throw new TooFewSuccessesException("Only %s tasks succeeded but %s were required".formatted(results.size(), n));
 			}
 
 			@Override
-			public Optional<Subtask<T>> timeout() {
-				return Optional.ofNullable(doneTask.get());
+			public List<T> timeout() throws TooFewSuccessesException {
+				throw new TooFewSuccessesException("The scope was cancelled before enough tasks succeeded", new StructuredTaskScope.CancelledByTimeoutException());
 			}
 		}
 
+		static class TooFewSuccessesException extends Exception {
+
+			public TooFewSuccessesException(String message) {
+				super(message);
+			}
+
+			public TooFewSuccessesException(String message, Throwable cause) {
+				super(message, cause);
+			}
+
+		}
+
 	}
+
 
 }

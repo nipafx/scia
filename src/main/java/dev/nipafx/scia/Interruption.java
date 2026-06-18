@@ -24,9 +24,9 @@ class Interruption {
 			var taskC = new Task("C");
 
 			try (var scope = StructuredTaskScope.open()) {
-				var subtaskA = scope.fork(() -> taskA.compute(Behavior.run(100)));
-				var subtaskB = scope.fork(() -> taskB.compute(Behavior.fail(200)));
-				var subtaskC = scope.fork(() -> taskC.compute(Behavior.run(1_000)));
+				var subtaskA = scope.fork(() -> taskA.computeOrRollBack(Behavior.run(100)));
+				var subtaskB = scope.fork(() -> taskB.computeOrRollBack(Behavior.fail(200)));
+				var subtaskC = scope.fork(() -> taskC.computeOrRollBack(Behavior.run(1_000)));
 
 				scope.join();
 
@@ -48,7 +48,7 @@ class Interruption {
 			var taskC = new Task("C (inner)");
 
 			try (var scope = StructuredTaskScope.open()) {
-				var subtask = scope.fork(() -> taskA.compute(Behavior.run(1_000)));
+				var subtask = scope.fork(() -> taskA.computeOrRollBack(Behavior.run(1_000)));
 				var subtasks = scope.fork(() -> inner(taskB, taskC));
 
 				scope.join();
@@ -62,8 +62,8 @@ class Interruption {
 
 		String inner(Task task1, Task task2) throws InterruptedException, ExecutionException {
 			try (var scope = StructuredTaskScope.open()) {
-				var subtaskB = scope.fork(() -> task1.compute(Behavior.run(1_000)));
-				var subtaskC = scope.fork(() -> task2.compute(Behavior.fail(100)));
+				var subtaskB = scope.fork(() -> task1.computeOrRollBack(Behavior.run(1_000)));
+				var subtaskC = scope.fork(() -> task2.computeOrRollBack(Behavior.fail(100)));
 
 				scope.join();
 
@@ -82,9 +82,9 @@ class Interruption {
 			var taskC = new Task("C");
 
 			try (var scope = StructuredTaskScope.open()) {
-				var subtaskA = scope.fork(() -> taskA.compute(Behavior.run(100)));
-				var subtaskB = scope.fork(() -> taskB.compute(Behavior.fail(200)));
-				var subtaskC = scope.fork(() -> taskC.compute(Behavior.runBusy(1_000)));
+				var subtaskA = scope.fork(() -> taskA.computeOrRollBack(Behavior.run(100)));
+				var subtaskB = scope.fork(() -> taskB.computeOrRollBack(Behavior.fail(200)));
+				var subtaskC = scope.fork(() -> taskC.computeOrRollBack(Behavior.runBusy(1_000)));
 
 				scope.join();
 

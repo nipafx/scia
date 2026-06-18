@@ -127,7 +127,7 @@ class BasicUse {
 
 				LOG.info(formatResults(subtaskA, subtaskB, subtaskC));
 			} catch (ExecutionException ex) {
-				LOG.error(formatStates(taskA, taskB, taskC));
+				LOG.error(formatStates(taskA, taskB, taskC), ex);
 			}
 			LOG.info("Done");
 		}
@@ -135,7 +135,7 @@ class BasicUse {
 	}
 
 
-	static class RollBackErrors {
+	static class RollBackTasks {
 
 		void main() throws InterruptedException {
 			var taskA = new Task("A");
@@ -188,5 +188,6 @@ class BasicUse {
 		}
 
 	}
+
 
 }

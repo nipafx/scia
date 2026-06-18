@@ -6,7 +6,6 @@ import java.time.Duration;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.StructuredTaskScope;
-import java.util.concurrent.StructuredTaskScope.CancelledByTimeoutException;
 
 public class Timeout {
 
