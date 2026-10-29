@@ -3,7 +3,7 @@
 The repository with the demo code for my talk [Structured Concurrency in Action](https://slides.nipafx.dev/scia).
 
 ⚠️The code in this repository is intended for demo purposes only.
-It is not designed or tested for production use, specifically not the "concurrent data structures" in the package `dev.nipafx.scia.queue`.
+It is not designed or tested for production use, specifically not the "concurrent data structures" in the package `dev.nipafx.scia.demo.queue`.
 
 
 ## Table of Content
@@ -11,21 +11,21 @@ It is not designed or tested for production use, specifically not the "concurren
 The intended order for the slides and the code in this repo:
 
 * slides: "API Overview"
-* code: `BasicUse`
-* code: `Joiners`
-* code: `Configuration`
+* code: `A_BasicUse`
+* code: `B_Joiners`
+* code: `C_Configuration`
 * slides: "Interruption"
-* code: `Interruption`
+* code: `D_Interruption`
 * code: `Timeout`
 * slides: "Backpressure"
 * code: package `queue`
 * code: `Items`
-* code: `Backpressure`
+* code: `E_Backpressure`
 * slides: "Building Blocks"
-* code: `Resilience4j`
-* code: `Reactive`
+* code: `F_Resilience4j`
+* code: `G_Reactive`
 
-### `BasicUse`
+### `A_BasicUse`
 
 * start with the simplest demo: `demo()`
 	* `open()`
@@ -52,7 +52,7 @@ The intended order for the slides and the code in this repo:
 	* assuming each task can handle errors itself without further input, create `Task::computeOrRollBack`
 	* observe: `computeOrRollBack` should probably be part of `Task`, i.e. ideally the tasks are self-correcting
 
-### `Interruption`
+### `D_Interruption`
 
 * start with `observeCancellation()`
 	* observe immediate return after failure

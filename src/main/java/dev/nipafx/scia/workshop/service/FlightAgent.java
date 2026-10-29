@@ -2,7 +2,7 @@ package dev.nipafx.scia.workshop.service;
 
 import dev.nipafx.scia.workshop.domain.City;
 import dev.nipafx.scia.workshop.domain.Flight;
-import dev.nipafx.scia.workshop.util.Random;
+import dev.nipafx.scia.workshop.misc.Random;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
