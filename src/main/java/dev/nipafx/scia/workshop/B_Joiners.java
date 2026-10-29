@@ -22,18 +22,14 @@ import java.util.function.Function;
 
 public class B_Joiners {
 
-	/* TODO:
-	 *  - create exercise to explore UNAVAILABLE status
-	 *  - create exercise for timeouts
-	 *  - create exercise for InterruptedException
-	 */
-
 	private static final Logger LOG = LoggerFactory.getLogger(B_Joiners.class);
 
 	public static class Ex1_ResultFromJoin {
 
 		private static final List<FlightAgent> flightAgents = List.of(
-				new FlightAgent("FA1"), new FlightAgent("FA2"), new FlightAgent("FA3"));
+				new FlightAgent("FA1"),
+				new FlightAgent("FA2"),
+				new FlightAgent("FA3"));
 
 		void main() throws Exception {
 			LOG.info("Exercise begins...");
@@ -48,9 +44,12 @@ public class B_Joiners {
 			}
 		}
 
-		// TODO: instructions
-		//  * note the list of flight agents
-		//  * select Joiner that better aligns with current behavior
+		/// In this exercise you will select a [Joiner] that better matches your use case.
+		/// Note that there are now multiple flight agents, collected in `List<FlightAgent> flightAgents`.
+		///
+		/// TODO:
+		///   * build on the prior implementation of `requestFlight`
+		///   * select a [Joiner] that operates on homogeneous tasks that all need to complete successful
 		private FlightAgent.Response requestFlight(City origin, City destination) throws IOException, InterruptedException {
 			try (StructuredTaskScope<FlightAgent.Response, List<FlightAgent.Response>, IOException> scope =
 						 StructuredTaskScope.open(Joiner.allSuccessfulOrThrow(Error::asIOException))) {
@@ -86,10 +85,20 @@ public class B_Joiners {
 			}
 		}
 
-		// TODO: instructions
-		//  * create Joiner that returns all successfull results unless there were none; in that case, throw NoSuchElementException
-		//  * allow optional exception wrapper to keep throwing as IOException
-		//  * experiment with error rates
+		/// In this exercise you will create your own [Joiner].
+		/// To observe more (or fewer) errors, play with the error rate that is configured for the two flight agents in `flightAgents`.
+		///
+		/// TODO:
+		///   * create a [Joiner] with the following properties:
+		///       * never cancels the task scope
+		///       * if at least one subtask succeeded, returns a list of all successful subtask results
+		///       * if no subtask succeeded, throws a `NoSuchElementException`
+		///       * requires an exception transformer `Function<Throwable, EX>`
+		///       * offers a zero-argument static factory method that wraps all exceptions in `ExecutionException`
+		///       * offers a static factory method that takes an exception transformer as argument
+		///       * can handle concurrent calls to `onComplete`, `result`, and `timeout`
+		///   * build on the prior implementation of `requestFlight`
+		///   * use the new `Joiner` to return all successfull results or throw if an `IOException` if there were none
 		private FlightAgent.Response requestFlight(City origin, City destination) throws IOException, InterruptedException {
 			try (StructuredTaskScope<FlightAgent.Response, List<FlightAgent.Response>, IOException> scope =
 						 StructuredTaskScope.open(AtLeastOneSuccessfulResultJoiner.create(Error::asIOException))) {

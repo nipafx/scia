@@ -33,10 +33,13 @@ public class A_BasicUse {
 			LOG.info("Exercise done");
 		}
 
-		// TODO: instructions
-		//  * use StructuredTaskScope
-		//  * no error handling
-		//  * observe log messages
+		/// In this exercise you will start using the structured concurrency API in its simplest form to execute two
+		/// tasks concurrently.
+		///
+		/// TODO:
+		///   * use [StructuredTaskScope] to execute the requests to `fa1` and `fa2` concurrently
+		///   * you can ingore error handling for now and stick to a `try` block without a `catch`
+		///   * carefully observe the resulting log messages and familiarize yourself with the flight agent logic
 		private static FlightAgent.Response requestFlight(City origin, City destination) throws IOException, ExecutionException, InterruptedException {
 //			FlightAgent.Response responseFa1 = fa1.request(origin, destination);
 //			FlightAgent.Response responseFa2 = fa2.request(origin, destination);
@@ -74,10 +77,13 @@ public class A_BasicUse {
 			}
 		}
 
-		// TODO: instructions
-		//  * log ERROR on exception and rethrow cause as IOException (if stuck, see `causeAsIOException`)
-		//  * include failed task's exception
-		//  * play with error rates
+		/// In this exercise you will explore simple error handling. To observe more (or fewer) errors, play with the
+		/// error rate that is configured for the two flight agents `fa1` and `fa2`.
+		///
+		/// TODO:
+		///   * build on the prior implementation of `requestFlight`
+		///   * log an error message when the subtasks fail and include the cause for the failure
+		///   * manually rethrow the cause for the failure as an [IOException] (if you're stuck, see [Error#causeAsIOException])
 		private static FlightAgent.Response requestFlight(City origin, City destination) throws IOException, InterruptedException {
 			try (var scope = StructuredTaskScope.open()) {
 				StructuredTaskScope.Subtask<FlightAgent.Response> responseFa1 = scope.fork(() -> fa1.request(origin, destination));
@@ -114,10 +120,13 @@ public class A_BasicUse {
 			}
 		}
 
-		// TODO: instructions
-		//  * include failed agent's name and subtask exception in log message
-		//  * play with error rates
-		//  * note that the subtask's exception is the same as `ex.getCause`
+		/// In this exercise you will dig deeper into more detailed error handling. To observe more (or fewer) errors,
+		/// play with the error rate that is configured for the two flight agents `fa1` and `fa2`.
+		///
+		/// TODO:
+		///   * build on the prior implementation of `requestFlight`
+		///   * include the failed agent's name and the subtask exception in the log message
+		///   * convince yourself that the subtask's exception is the same as the cause of the exception thrown by `join`
 		private static FlightAgent.Response requestFlight(City origin, City destination) throws IOException, InterruptedException {
 			try (var scope = StructuredTaskScope.open()) {
 				StructuredTaskScope.Subtask<FlightAgent.Response> responseFa1 = scope.fork(() -> fa1.request(origin, destination));
@@ -158,10 +167,14 @@ public class A_BasicUse {
 			}
 		}
 
-		// TODO: instructions
-		//  * drop detailed error logging
-		//  * propagate error as IOException by configuring `Joiner.awaitAllSuccessfulOrThrow()` (if stuck, see `asIOException`)
-		//  * play with error rates
+		/// In this exercise you will simplify error handling by relying on the `Joiner`'s capability to wrap the exception.
+		/// To observe more (or fewer) errors, play with the error rate that is configured for the two flight agents `fa1` and `fa2`.
+		///
+		/// TODO:
+		///   * build on the prior implementation of `requestFlight`
+		///   * drop the detailed error handling
+		///   * propagate the exception as an [IOException] by configuring `Joiner.awaitAllSuccessfulOrThrow()` with an
+		///     exception wrapper (if you're stuck, use [Error#asIOException]) 
 		private FlightAgent.Response requestFlight(City origin, City destination) throws IOException, InterruptedException {
 			try (var scope = StructuredTaskScope.open(
 					StructuredTaskScope.Joiner.awaitAllSuccessfulOrThrow(Error::asIOException))) {

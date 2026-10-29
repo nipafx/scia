@@ -48,6 +48,12 @@ public class C_ComplexScopes {
 			}
 		}
 
+		/// TODO:
+		///   * build on the prior implementation of `requestFlight`
+		///    (feel free to make your custom `Joiner` public, so you can reference it here)
+		///   * note how this method and the next are tied together in `main`
+		///
+		/// (You will not otherwise work on this method.)
 		private FlightAgent.Response requestFlight(City origin, City destination) throws IOException, InterruptedException {
 			try (StructuredTaskScope<FlightAgent.Response, List<FlightAgent.Response>, IOException> scope =
 						 StructuredTaskScope.open(B_Joiners.AtLeastOneSuccessfulResultJoiner.create(Error::asIOException))) {
@@ -59,10 +65,17 @@ public class C_ComplexScopes {
 			}
 		}
 
-		// TODO: instructions
-		//  * request weather forecast for all cities concurrently, only show successful responses
-		//  * experiment with error rates
-		//  * see `getVisitedCities()`
+		/// In this exercise you will apply what you already learned to a familiar but slightly different use case,
+		/// but the important observation is that you will run two structured task scopes in sequence, thus making
+		/// execution of the second contingent on the first finishing successfully.
+		///
+		/// Take a look at [w1] and [getVisitedCities] before getting started.
+		/// To observe more (or fewer) errors, play with the error rate that is configured for the forecaster `w1`.
+		///
+		/// TODO:
+		///   * concurrently request weather forecasts for all cities that a flight visits
+		///   * like with flight request, you can limit yourself to successful requests of there was at least one
+		///   * unlike with flight requests, remove all responses that returned no data
 		private List<WeatherForecaster.Response> requestWeather(Optional<Flight> flight) throws InterruptedException {
 			if (flight.isEmpty())
 				return List.of();
@@ -119,11 +132,18 @@ public class C_ComplexScopes {
 			}
 		}
 
-		// TODO: instructions
-		//  * request weather forecast for all cities concurrently from all forecasters
-		//  * pick fastest response for each city
-		//  * require a forecast for each city (i.e. not "n.a.")
-		//  * experiment with error rates
+		/// In this exercise you will nest [StructuredTaskScope]s and observe that they "compose well", meaning you can
+		/// make decisions about each scope individually. The correct global behavior will emerge from these local
+		/// design decisions.
+		///
+		/// Note that there are now multiple weather forecasters, collected in `List<WeatherForecaster> forecasters`.
+		/// To observe more (or fewer) errors, play with the error rate that is configured for the forecasters in  `forecasters`.
+		///
+		/// TODO:
+		///   * for each city, request a weather forecast from each forecaster
+		///   * there must be at least one successful, non-empty response for each city
+		///   * pick the fastest such reponse (by selecting the right `Joiner`)
+		///   * execute all requests concurrently
 		private List<WeatherForecaster.Response> requestWeather(Optional<Flight> flight) throws IOException, InterruptedException {
 			if (flight.isEmpty())
 				return List.of();
