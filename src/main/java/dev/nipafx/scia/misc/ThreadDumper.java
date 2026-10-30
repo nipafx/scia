@@ -14,6 +14,7 @@ public class ThreadDumper {
 				.ofVirtual()
 				.name("thread-dumper")
 				.start(() -> {
+					LOG.debug("Thread dump starts...");
 					try {
 						Thread.sleep(delayInMs);
 						var jcmd = new ProcessBuilder(
@@ -26,7 +27,7 @@ public class ThreadDumper {
 						).start();
 
 						jcmd.waitFor();
-						LOG.info("Thread dump created");
+						LOG.debug("Thread dump created");
 					} catch (InterruptedException ex) {
 						LOG.error("Thread dumper interrupted - no dump created", ex);
 					} catch (IOException ex) {

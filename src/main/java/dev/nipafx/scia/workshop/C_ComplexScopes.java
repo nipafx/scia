@@ -144,6 +144,7 @@ public class C_ComplexScopes {
 		///   * there must be at least one successful, non-empty response for each city
 		///   * pick the fastest such reponse (by selecting the right `Joiner`)
 		///   * execute all requests concurrently
+		///   * observe the resulting log messages, particularly `DEBUG` messages regarding cancellation
 		private List<WeatherForecaster.Response> requestWeather(Optional<Flight> flight) throws IOException, InterruptedException {
 			if (flight.isEmpty())
 				return List.of();

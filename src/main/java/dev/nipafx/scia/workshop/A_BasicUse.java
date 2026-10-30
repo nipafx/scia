@@ -84,6 +84,7 @@ public class A_BasicUse {
 		///   * build on the prior implementation of `requestFlight`
 		///   * log an error message when the subtasks fail and include the cause for the failure
 		///   * manually rethrow the cause for the failure as an [IOException] (if you're stuck, see [Error#causeAsIOException])
+		///   * observe the resulting log messages, particularly `DEBUG` messages regarding cancellation (we'll come back to this)
 		private static FlightAgent.Response requestFlight(City origin, City destination) throws IOException, InterruptedException {
 			try (var scope = StructuredTaskScope.open()) {
 				StructuredTaskScope.Subtask<FlightAgent.Response> responseFa1 = scope.fork(() -> fa1.request(origin, destination));

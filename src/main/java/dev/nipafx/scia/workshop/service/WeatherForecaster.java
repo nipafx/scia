@@ -29,7 +29,13 @@ public class WeatherForecaster {
 
 	public Response request(City city) throws IOException, InterruptedException {
 		LOG.info("Forecaster '{}' requests weather in {}", name, city);
-		Thread.sleep(Random.latency(configuration));
+
+		try {
+			Thread.sleep(Random.latency(configuration));
+		} catch (InterruptedException ex) {
+			LOG.debug("Forecaster '{}' request for weather in {} got cancelled", name, city);
+			throw ex;
+		}
 
 		if (!Random.isSuccess(configuration)) {
 			LOG.error("Forecaster '{}' failed for weather in {}", name, city);

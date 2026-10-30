@@ -30,7 +30,13 @@ public class FlightAgent {
 
 	public Response request(City origin, City destination, Configuration configuration) throws IOException, InterruptedException {
 		LOG.info("Flight agent '{}' requests flight from {} to {}", name, origin, destination);
-		Thread.sleep(Random.latency(configuration));
+
+		try {
+			Thread.sleep(Random.latency(configuration));
+		} catch (InterruptedException ex) {
+			LOG.debug("Flight agent '{}' request for flight from {} to {} got cancelled", name, origin, destination);
+			throw ex;
+		}
 
 		if (!Random.isSuccess(configuration)) {
 			LOG.error("Flight agent '{}' failed for flight from {} to {}", name, origin, destination);
