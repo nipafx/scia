@@ -55,14 +55,7 @@ public class C_ComplexScopes {
 		///
 		/// (You will not otherwise work on this method.)
 		private FlightAgent.Response requestFlight(City origin, City destination) throws IOException, InterruptedException {
-			try (StructuredTaskScope<FlightAgent.Response, List<FlightAgent.Response>, IOException> scope =
-						 StructuredTaskScope.open(B_Joiners.AtLeastOneSuccessfulResultJoiner.create(Error::asIOException))) {
-				flightAgents.forEach(agent -> scope.fork(() -> agent.request(origin, destination)));
-
-				List<FlightAgent.Response> responses = scope.join();
-
-				return Misc.pickResponseWithCheapestFlight(responses);
-			}
+			throw new IllegalStateException("Not yet implemented");
 		}
 
 		/// In this exercise you will apply what you already learned to a familiar but slightly different use case,
@@ -77,20 +70,7 @@ public class C_ComplexScopes {
 		///   * like with flight request, you can limit yourself to successful requests of there was at least one
 		///   * unlike with flight requests, remove all responses that returned no data
 		private List<WeatherForecaster.Response> requestWeather(Optional<Flight> flight) throws InterruptedException {
-			if (flight.isEmpty())
-				return List.of();
-
-			var cities = getVisitedCities(flight);
-			try (StructuredTaskScope<WeatherForecaster.Response, List<WeatherForecaster.Response>, ExecutionException> scope =
-						 StructuredTaskScope.open(B_Joiners.AtLeastOneSuccessfulResultJoiner.create())) {
-				cities.forEach(city -> scope.fork(() -> w1.request(city)));
-				return scope
-						.join().stream()
-						.filter(response -> response.forecast().isPresent())
-						.toList();
-			} catch (ExecutionException e) {
-				return List.of();
-			}
+			throw new IllegalStateException("Not yet implemented");
 		}
 
 	}
@@ -146,30 +126,7 @@ public class C_ComplexScopes {
 		///   * execute all requests concurrently
 		///   * observe the resulting log messages, particularly `DEBUG` messages regarding cancellation
 		private List<WeatherForecaster.Response> requestWeather(Optional<Flight> flight) throws IOException, InterruptedException {
-			if (flight.isEmpty())
-				return List.of();
-
-			var cities = getVisitedCities(flight);
-			try (StructuredTaskScope<WeatherForecaster.Response, List<WeatherForecaster.Response>, IOException> scope =
-						 StructuredTaskScope.open(StructuredTaskScope.Joiner.allSuccessfulOrThrow(Error::asIOException))) {
-				for (var city : cities)
-					scope.fork(() -> requestWeather(city));
-				return scope.join();
-			}
-		}
-
-		private WeatherForecaster.Response requestWeather(City city) throws IOException, InterruptedException {
-			try (StructuredTaskScope<WeatherForecaster.Response, WeatherForecaster.Response, IOException> scope =
-						 StructuredTaskScope.open(StructuredTaskScope.Joiner.anySuccessfulOrThrow(Error::asIOException))) {
-				forecasters.forEach(forecaster -> scope.fork(() -> {
-					var response = forecaster.request(city);
-					if (response.forecast().isEmpty())
-						throw new NoSuchElementException("Response for '%s' contained no forcast".formatted(city));
-					return response;
-				}));
-				return scope.join();
-			}
-
+			throw new IllegalStateException("Not yet implemented");
 		}
 
 	}

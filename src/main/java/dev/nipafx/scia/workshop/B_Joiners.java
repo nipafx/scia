@@ -51,14 +51,7 @@ public class B_Joiners {
 		///   * build on the prior implementation of `requestFlight`
 		///   * select a [Joiner] that operates on homogeneous tasks that all need to complete successful
 		private FlightAgent.Response requestFlight(City origin, City destination) throws IOException, InterruptedException {
-			try (StructuredTaskScope<FlightAgent.Response, List<FlightAgent.Response>, IOException> scope =
-						 StructuredTaskScope.open(Joiner.allSuccessfulOrThrow(Error::asIOException))) {
-				flightAgents.forEach(agent -> scope.fork(() -> agent.request(origin, destination)));
-
-				List<FlightAgent.Response> responses = scope.join();
-
-				return Misc.pickResponseWithCheapestFlight(responses);
-			}
+			throw new IllegalStateException("Not yet implemented");
 		}
 
 	}
@@ -100,61 +93,9 @@ public class B_Joiners {
 		///   * build on the prior implementation of `requestFlight`
 		///   * use the new `Joiner` to return all successfull results or throw if an `IOException` if there were none
 		private FlightAgent.Response requestFlight(City origin, City destination) throws IOException, InterruptedException {
-			try (StructuredTaskScope<FlightAgent.Response, List<FlightAgent.Response>, IOException> scope =
-						 StructuredTaskScope.open(AtLeastOneSuccessfulResultJoiner.create(Error::asIOException))) {
-				flightAgents.forEach(agent -> scope.fork(() -> agent.request(origin, destination)));
-
-				List<FlightAgent.Response> responses = scope.join();
-
-				return Misc.pickResponseWithCheapestFlight(responses);
-			}
+			throw new IllegalStateException("Not yet implemented");
 		}
 
-	}
-
-	public static class AtLeastOneSuccessfulResultJoiner<T, EX extends Exception> implements Joiner<T, List<T>, EX> {
-
-		private final Function<Throwable, EX> asException;
-		private final List<T> results = new CopyOnWriteArrayList<>();
-
-		private AtLeastOneSuccessfulResultJoiner(Function<Throwable, EX> asException) {
-			this.asException = Objects.requireNonNull(asException);
-		}
-
-		public static <T> AtLeastOneSuccessfulResultJoiner<T, ExecutionException> create() {
-			return create(ExecutionException::new);
-		}
-
-		public static <T, EX extends Exception> AtLeastOneSuccessfulResultJoiner<T, EX> create(Function<Throwable, EX> asException) {
-			return new AtLeastOneSuccessfulResultJoiner(asException);
-		}
-
-		@Override
-		public boolean onComplete(Subtask<T> subtask) {
-			if (subtask.state() == Subtask.State.SUCCESS)
-				results.add(subtask.get());
-			return Joiner.super.onComplete(subtask);
-		}
-
-		@Override
-		public List<T> result() throws EX {
-			synchronized (results) {
-				if (results.isEmpty())
-					throw asException.apply(new NoSuchElementException());
-				else
-					return List.copyOf(results);
-			}
-		}
-
-		@Override
-		public List<T> timeout() throws EX {
-			synchronized (results) {
-				if (results.isEmpty())
-					throw asException.apply(new StructuredTaskScope.CancelledByTimeoutException());
-				else
-					return List.copyOf(results);
-			}
-		}
 	}
 
 }
