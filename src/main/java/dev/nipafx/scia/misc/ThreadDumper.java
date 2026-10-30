@@ -10,6 +10,10 @@ public class ThreadDumper {
 	private static final Logger LOG = LoggerFactory.getLogger(ThreadDumper.class);
 
 	public static void createDumpAfter(int delayInMs) {
+		createDumpAfter(delayInMs, "threads.json");
+	}
+
+	public static void createDumpAfter(int delayInMs, String fileName) {
 		Thread
 				.ofVirtual()
 				.name("thread-dumper")
@@ -23,7 +27,7 @@ public class ThreadDumper {
 								"Thread.dump_to_file",
 								"-format=json",
 								"-overwrite",
-								"threads.json"
+								fileName
 						).start();
 
 						jcmd.waitFor();

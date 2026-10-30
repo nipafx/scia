@@ -95,7 +95,7 @@ public class C_ComplexScopes {
 
 	}
 
-	private static List<City> getVisitedCities(Optional<Flight> flight) {
+	static List<City> getVisitedCities(Optional<Flight> flight) {
 		var cities = switch (flight.get()) {
 			case Flight.Direct(var origin, var destination, _) -> List.of(origin, destination);
 			case Flight.MultiLeg(var connections) -> Stream
